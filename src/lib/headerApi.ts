@@ -57,6 +57,8 @@ interface ApiHeaderStyle {
   hovercolor: string
   height: number
   sticky: number
+  max_width?: string
+  logo_size?: number
 }
 
 // Header бүтэц (Django-ийн `/api/v1/headers/` endpoint-аас ирэх)

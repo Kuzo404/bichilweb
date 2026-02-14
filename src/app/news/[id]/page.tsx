@@ -239,6 +239,7 @@ export default function NewsDetailPage() {
           isPinnedNews: item.feature || false,
           images: [],
           socials: [],
+          video: item.video || '',
         };
       });
   };
@@ -276,6 +277,7 @@ export default function NewsDetailPage() {
         isPinnedNews: nextItem.feature || false,
         images: [],
         socials: [],
+        video: nextItem.video || '',
       };
     }
     

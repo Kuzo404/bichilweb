@@ -22,6 +22,8 @@ interface Branch {
   latitude: string;
   longitude: string;
   phones: PhoneItem[];
+  category_id: number | null;
+  category_name: string | null;
 }
 
 type Props = {

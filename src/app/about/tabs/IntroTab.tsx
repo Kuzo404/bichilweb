@@ -356,7 +356,7 @@ export default function IntroTab() {
                      return (
                         <div 
                           key={index}
-                          ref={(el) => (itemRefs.current[index] = el)}
+                          ref={(el) => { itemRefs.current[index] = el }}
                           data-index={index}
                           className={clsx(
                             "relative flex flex-col md:flex-row items-center md:items-start group",

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -111,6 +111,14 @@ const mapApiNewsToFrontend = (item: ApiNewsItem, languageId: number): NewsItem =
 }
 
 export default function NewsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <NewsPageContent />
+    </Suspense>
+  )
+}
+
+function NewsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { language, setLanguage, t } = useLanguage()
