@@ -287,23 +287,34 @@ export default function Header() {
               {/* Logo + Desktop Nav */}
               <div className="flex items-center gap-6 lg:gap-8">
                 <Link href="/" className="flex items-center">
-                  <div className="rounded-full overflow-hidden flex items-center justify-center" style={{ width: `${adminHeaderStyle?.logoSize || 44}px`, height: `${adminHeaderStyle?.logoSize || 44}px` }}>
+                  <div className="rounded-full overflow-hidden flex items-center justify-center bg-gray-100" style={{ width: `${adminHeaderStyle?.logoSize || 44}px`, height: `${adminHeaderStyle?.logoSize || 44}px` }}>
                     {/* Лого: өгөгдлийн сангаас татсан URL ашиглана, байхгүй бол анхдагч зураг */}
-                    <Image
-                      src={
-                        adminHeaderStyle?.logoUrl
-                          ? adminHeaderStyle.logoUrl.startsWith('/media')
+                    {adminHeaderStyle?.logoUrl && adminHeaderStyle.logoUrl !== '' ? (
+                      <Image
+                        src={
+                          adminHeaderStyle.logoUrl.startsWith('/media')
                             ? `${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${adminHeaderStyle.logoUrl}`
-                            : adminHeaderStyle.logoUrl.startsWith('blob:')
+                            : adminHeaderStyle.logoUrl.startsWith('blob:') || adminHeaderStyle.logoUrl.startsWith('data:')
                               ? '/images/logo.jpg'
                               : adminHeaderStyle.logoUrl
-                          : '/images/logo.jpg'
-                      }
-                      alt="Logo"
-                      width={adminHeaderStyle?.logoSize || 44}
-                      height={adminHeaderStyle?.logoSize || 44}
-                      className="object-cover"
-                    />
+                        }
+                        alt="Logo"
+                        width={adminHeaderStyle?.logoSize || 44}
+                        height={adminHeaderStyle?.logoSize || 44}
+                        className="object-cover"
+                        priority
+                        onError={() => console.warn('Logo image failed to load:', adminHeaderStyle.logoUrl)}
+                      />
+                    ) : (
+                      <Image
+                        src="/images/logo.jpg"
+                        alt="Default Logo"
+                        width={adminHeaderStyle?.logoSize || 44}
+                        height={adminHeaderStyle?.logoSize || 44}
+                        className="object-cover"
+                        priority
+                      />
+                    )}
                   </div>
                 </Link>
 
