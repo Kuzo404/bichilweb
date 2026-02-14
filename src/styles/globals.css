@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* custom globals */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+/* Custom color variables */
+:root {
+  --color-primary: #0ea5a4;
+  --color-accent: #f97316;
+}

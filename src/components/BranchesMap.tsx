@@ -1,0 +1,46 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import type { BranchSettings } from "@/app/branches/page";
+
+interface PhoneItem {
+  id: number;
+  phone: string;
+}
+
+interface Branch {
+  id: number;
+  name: string;
+  location: string;
+  image: string;
+  image_url: string;
+  area: string;
+  city: string;
+  district: string;
+  open: string;
+  time: string;
+  latitude: string;
+  longitude: string;
+  phones: PhoneItem[];
+}
+
+type Props = {
+  branches: Branch[];
+  selectedBranch: Branch | null;
+  onSelect: (b: Branch) => void;
+  settings: BranchSettings;
+};
+
+// Leaflet must be loaded client-side only
+const LeafletMap = dynamic(() => import("./LeafletMap"), { ssr: false });
+
+export default function BranchesMap({ branches, selectedBranch, onSelect, settings }: Props) {
+  return (
+    <LeafletMap
+      branches={branches}
+      selectedBranch={selectedBranch}
+      onSelect={onSelect}
+      settings={settings}
+    />
+  );
+}
