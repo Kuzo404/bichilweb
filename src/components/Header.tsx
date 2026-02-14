@@ -287,7 +287,7 @@ export default function Header() {
               {/* Logo + Desktop Nav */}
               <div className="flex items-center gap-6 lg:gap-8">
                 <Link href="/" className="flex items-center">
-                  <div className="rounded-full overflow-hidden flex items-center justify-center bg-gray-100" style={{ width: `${adminHeaderStyle?.logoSize || 44}px`, height: `${adminHeaderStyle?.logoSize || 44}px` }}>
+                  <div className="flex items-center justify-center" style={{ width: `${adminHeaderStyle?.logoSize || 44}px`, height: `${adminHeaderStyle?.logoSize || 44}px` }}>
                     {/* Лого: өгөгдлийн сангаас татсан URL ашиглана, байхгүй бол анхдагч зураг */}
                     {adminHeaderStyle?.logoUrl && adminHeaderStyle.logoUrl !== '' ? (
                       <Image
