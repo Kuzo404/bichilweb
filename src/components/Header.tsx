@@ -63,37 +63,34 @@ const getTrans = (translations: ApiTranslation[], langId: number): string =>
 const getSvcTitle = (translations: ApiServiceTranslation[], langId: number): string =>
   translations.find(t => t.language === langId)?.title || ''
 
-// ─── Статик цэснүүд (Бидний тухай, Мэдээлэл, Хуудсууд) ──────────────────────
+// ─── Статик fallback цэснүүд (DB хоосон бол ашиглана) ──────────────────────
 
 const getStaticMenuItems = (
   serviceItems: SubMenuItem[],
   dynamicPages: SubMenuItem[]
-): MenuItem[] => [
-  {
-    title_mn: 'Үйлчилгээ',
-    title_en: 'Services',
-    items: serviceItems,
-  },
-  {
-    title_mn: 'Бидний тухай',
-    title_en: 'About Us',
-    items: [
-      { title_mn: 'Танилцуулга',      title_en: 'Overview',  href: '/about'    },
-      { title_mn: 'Хүний нөөц',       title_en: 'Careers',   href: '/about/hr' },
-      { title_mn: 'Салбарын байршил', title_en: 'Locations', href: '/branches' },
-    ],
-  },
-  {
-    title_mn: 'Мэдээлэл',
-    title_en: 'News',
-    href: '/news',
-  },
-  {
-    title_mn: 'Хуудсууд',
-    title_en: 'Pages',
-    items: dynamicPages.length > 0 ? dynamicPages : [],
-  },
-]
+): MenuItem[] => {
+  const items: MenuItem[] = []
+
+  // Үйлчилгээ (DB-ээс татсан)
+  if (serviceItems.length > 0) {
+    items.push({
+      title_mn: 'Үйлчилгээ',
+      title_en: 'Services',
+      items: serviceItems,
+    })
+  }
+
+  // Хуудсууд (DB-ээс татсан)
+  if (dynamicPages.length > 0) {
+    items.push({
+      title_mn: 'Хуудсууд',
+      title_en: 'Pages',
+      items: dynamicPages,
+    })
+  }
+
+  return items
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
