@@ -276,69 +276,82 @@ export default function GovernanceTab() {
         </div>
       )}
 
-      {/* Detail Modal - Modern */}
+      {/* Detail Modal - Premium */}
       {selectedPerson && (() => {
         const tr = getTrans(selectedPerson.translations, langId);
         return (
           <div
-            className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-0 sm:items-center p-3 sm:p-4 bg-black/60 backdrop-blur-md overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6 bg-black/70 backdrop-blur-md overflow-y-auto"
             onClick={() => setSelectedPerson(null)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
             <div
-              className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden relative shadow-[0_32px_64px_rgba(0,0,0,0.2)] animate-in fade-in zoom-in-95 duration-300 my-auto"
+              className="bg-white w-full h-full sm:h-auto sm:max-h-[92vh] sm:w-[95vw] sm:max-w-5xl sm:rounded-2xl overflow-hidden relative shadow-2xl animate-in fade-in zoom-in-95 duration-300"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button */}
+              {/* Close */}
               <button
                 onClick={() => setSelectedPerson(null)}
                 aria-label="Хаах"
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2.5 bg-white/90 backdrop-blur-sm text-gray-400 hover:text-gray-700 hover:bg-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-10 h-10 flex items-center justify-center bg-black/30 sm:bg-white/90 backdrop-blur-sm text-white sm:text-gray-400 hover:text-gray-800 hover:bg-white rounded-full transition-all duration-200 shadow-lg"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
-              <div className="flex flex-col md:flex-row">
-                {/* Image */}
-                <div className="w-full md:w-2/5 flex-shrink-0 relative">
-                  <div className="relative aspect-[3/4] sm:aspect-auto sm:h-full min-h-[280px] w-full bg-gray-50">
-                    {selectedPerson.image ? (
-                      <Image
-                        src={selectedPerson.image}
-                        alt={tr?.name || ''}
-                        fill
-                        className="object-contain object-top"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/img/avatar-placeholder.png';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-50 to-gray-50 text-teal-200">
-                        <svg className="w-24 h-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+              <div className="flex flex-col md:flex-row h-full sm:h-auto">
+                {/* Image — flush, no gaps */}
+                <div className="w-full md:w-[42%] flex-shrink-0 relative bg-gradient-to-b from-gray-100 to-gray-200">
+                  {selectedPerson.image ? (
+                    <>
+                      {/* Mobile: fixed aspect */}
+                      <div className="block md:hidden relative w-full" style={{ aspectRatio: '4/5' }}>
+                        <Image
+                          src={selectedPerson.image}
+                          alt={tr?.name || ''}
+                          fill
+                          className="object-cover"
+                          sizes="100vw"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/img/avatar-placeholder.png'; }}
+                        />
+                        {/* Bottom gradient for text readability */}
+                        <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-white via-white/60 to-transparent" />
                       </div>
-                    )}
-                    {/* Subtle gradient on mobile */}
-                    <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white to-transparent md:hidden" />
-                  </div>
+                      {/* Desktop: full height, object-cover, no gaps */}
+                      <div className="hidden md:block relative w-full h-full min-h-[480px]">
+                        <Image
+                          src={selectedPerson.image}
+                          alt={tr?.name || ''}
+                          fill
+                          className="object-cover object-top"
+                          sizes="42vw"
+                          onError={(e) => { (e.target as HTMLImageElement).src = '/img/avatar-placeholder.png'; }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full h-64 md:h-full md:min-h-[480px] flex items-center justify-center bg-gradient-to-br from-teal-50 to-gray-100 text-teal-200">
+                      <svg className="w-24 h-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}
-                <div className="w-full md:w-3/5 p-5 sm:p-8 md:p-10 flex flex-col justify-start">
+                <div className="w-full md:w-[58%] p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col justify-start overflow-y-auto max-h-[50vh] sm:max-h-none md:max-h-[92vh]">
                   {/* Role badge */}
                   {tr?.role && (
-                    <div className="inline-flex items-center self-start gap-1.5 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                    <div className="inline-flex items-center self-start gap-1.5 bg-gradient-to-r from-teal-50 to-teal-100/60 text-teal-700 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] mb-4 ring-1 ring-teal-200/50">
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
                       {tr.role}
                     </div>
                   )}
 
-                  <h3 id="modal-title" className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
+                  <h3 id="modal-title" className="text-2xl sm:text-3xl md:text-[2rem] lg:text-4xl font-extrabold text-gray-900 leading-[1.15] tracking-tight">
                     {tr?.name}
                   </h3>
 
@@ -354,14 +367,24 @@ export default function GovernanceTab() {
 
                   {tr?.description && (
                     <>
-                      <div className="w-12 h-px bg-gradient-to-r from-teal-500 to-transparent mt-5 mb-5" />
-                      <div className="space-y-3.5 text-gray-600 leading-7 text-[15px] overflow-y-auto max-h-[45vh] pr-1 scrollbar-thin">
+                      <div className="w-16 h-[2px] bg-gradient-to-r from-teal-500 via-teal-300 to-transparent mt-6 mb-6" />
+                      <div className="space-y-4 text-gray-600 leading-[1.85] text-[15px] pr-1">
                         {tr.description.split('\n\n').map((paragraph: string, i: number) => (
                           <p key={i}>{paragraph}</p>
                         ))}
                       </div>
                     </>
                   )}
+
+                  {/* Bottom action on mobile */}
+                  <div className="mt-8 pt-6 border-t border-gray-100 md:hidden">
+                    <button
+                      onClick={() => setSelectedPerson(null)}
+                      className="w-full py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors"
+                    >
+                      {language === 'mn' ? 'Хаах' : 'Close'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -272,7 +272,7 @@ export default function BranchesPage() {
                   {branch.image_url && (
                     <div className="relative w-full h-32 sm:h-40 md:h-44 overflow-hidden">
                       <img
-                        src={`${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${branch.image_url}`}
+                        src={branch.image_url?.startsWith('http') ? branch.image_url : `${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${branch.image_url}`}
                         alt={branch.name}
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                         onError={(e) => {
