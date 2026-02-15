@@ -314,11 +314,10 @@ export default function Footer() {
 
         {/* Bottom Bar — Copyright */}
         <div
-          className={`mt-10 pt-6 border-t ${textClass} flex flex-col md:flex-row justify-between items-center gap-4`}
+          className={`mt-10 pt-6 border-t ${textClass} flex justify-center items-center`}
           style={{ borderColor: `${fontcolor || "#4b5563"}20`, color: fontcolor || "#4b5563" }}
         >
-          <div>
-            © {new Date().getFullYear()} {logotext || "BichilGlobus"}.{" "}
+          <div className="text-center">
             {t(copyrightmn || "", copyrighten || "")}
           </div>
         </div>
