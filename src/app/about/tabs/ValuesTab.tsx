@@ -37,7 +37,7 @@ interface CoreValueAPI {
 }
 
 const getMN = (translations: any[], field: string): string => {
-  const mn = translations?.find((t: any) => t.language === 2);
+  const mn = translations?.find((t: any) => t.language === 1);
   return mn?.[field] || translations?.[0]?.[field] || '';
 };
 

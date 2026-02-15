@@ -119,8 +119,8 @@ export default function GovernanceTab() {
   const [categories, setCategories] = useState<CategoryAPI[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Language: Mongolian by default (language id 2)
-  const langId = 2;
+  // Language: Mongolian by default (language id 1)
+  const langId = 1;
 
   /* ── Fetch ───────────────────────────────────────────────────────── */
 

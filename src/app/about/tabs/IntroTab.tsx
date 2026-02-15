@@ -61,16 +61,24 @@ export default function IntroTab() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Discover about page ID dynamically
+        const pagesRes = await fetch(`${API_URL}/about-page/`);
+        if (!pagesRes.ok) throw new Error('Failed to fetch pages');
+        const pages = await pagesRes.json();
+        const aboutPage = pages.find((p: any) => p.key === 'intro');
+        if (!aboutPage) throw new Error('About page not found');
+        const pid = aboutPage.id;
+
         const [aboutRes, timelineRes] = await Promise.all([
-          fetch(`${API_URL}/about-page/3/`),
-          fetch(`${API_URL}/timeline/?page=3`),
+          fetch(`${API_URL}/about-page/${pid}/`),
+          fetch(`${API_URL}/timeline/?page=${pid}`),
         ]);
 
         if (aboutRes.ok) {
           const data = await aboutRes.json();
 
           const getMN = (translations: any[], field: string) => {
-            const mn = translations?.find((t: any) => t.language === 2 || t.language_code === 'MN');
+            const mn = translations?.find((t: any) => t.language === 1 || t.language_code === 'MN');
             return mn?.[field] || '';
           };
 
@@ -114,7 +122,7 @@ export default function IntroTab() {
           const events = (timelineData || [])
             .filter((ev: any) => ev.visible !== false)
             .map((ev: any) => {
-              const mn = ev.translations?.find((t: any) => t.language === 2 || t.language_code === 'MN');
+              const mn = ev.translations?.find((t: any) => t.language === 1 || t.language_code === 'MN');
               return {
                 year: ev.year || '',
                 title: mn?.title || '',

@@ -50,7 +50,15 @@ export default function StructureTab() {
   useEffect(() => {
     const fetchStructure = async () => {
       try {
-        const res = await fetch(`${API_URL}/org-structure/?page=3`);
+        // Discover about page ID dynamically
+        const pagesRes = await fetch(`${API_URL}/about-page/`);
+        if (!pagesRes.ok) throw new Error('Failed to fetch pages');
+        const pages = await pagesRes.json();
+        const aboutPage = pages.find((p: any) => p.key === 'intro');
+        if (!aboutPage) throw new Error('About page not found');
+        const pid = aboutPage.id;
+
+        const res = await fetch(`${API_URL}/org-structure/?page=${pid}`);
         if (!res.ok) throw new Error('Failed');
         const data = await res.json();
         if (data.length > 0) {

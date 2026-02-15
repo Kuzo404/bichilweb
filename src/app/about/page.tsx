@@ -24,7 +24,15 @@ export default function AboutPage() {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const res = await fetch(`${API_URL}/about-banner/?page=3`);
+        // Discover about page ID dynamically
+        const pagesRes = await fetch(`${API_URL}/about-page/`);
+        if (!pagesRes.ok) return;
+        const pages = await pagesRes.json();
+        const aboutPage = pages.find((p: any) => p.key === 'intro');
+        if (!aboutPage) return;
+        const pid = aboutPage.id;
+
+        const res = await fetch(`${API_URL}/about-banner/?page=${pid}`);
         if (!res.ok) return;
         const data: BannerData[] = await res.json();
         if (data.length > 0) {
@@ -37,9 +45,9 @@ export default function AboutPage() {
     fetchBanner();
   }, []);
 
-  // Get Mongolian translation (language 2)
-  const bannerTitle = banner?.translations?.find(t => t.language === 2)?.title || '';
-  const bannerSubtitle = banner?.translations?.find(t => t.language === 2)?.subtitle || '';
+  // Get Mongolian translation (language 1 = MN)
+  const bannerTitle = banner?.translations?.find(t => t.language === 1)?.title || '';
+  const bannerSubtitle = banner?.translations?.find(t => t.language === 1)?.subtitle || '';
   const bannerImage = banner?.image || '';
 
   return (
