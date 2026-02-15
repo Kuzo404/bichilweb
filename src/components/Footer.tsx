@@ -42,6 +42,7 @@ interface FooterData {
   fontsize: string;
   copyrighten: string;
   copyrightmn: string;
+  logo_size: string;
   socials: FooterSocial[];
   urls: FooterUrl[];
 }
@@ -156,7 +157,8 @@ export default function Footer() {
             >
               {svg ? (
                 <span
-                  className="inline-block w-52 h-14 [&>svg]:w-full [&>svg]:h-full"
+                  className="inline-block [&>svg]:w-full [&>svg]:h-full"
+                  style={{ height: `${footerData.logo_size || '56'}px`, width: 'auto' }}
                   dangerouslySetInnerHTML={{ __html: svg }}
                 />
               ) : logo_url ? (
@@ -167,7 +169,8 @@ export default function Footer() {
                       : `${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${logo_url}`
                   }
                   alt={logotext}
-                  className="h-14 object-contain"
+                  style={{ height: `${footerData.logo_size || '56'}px` }}
+                  className="object-contain"
                 />
               ) : (
                 logotext || "BichilGlobus"
