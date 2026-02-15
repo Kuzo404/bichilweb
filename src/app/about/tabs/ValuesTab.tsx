@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
@@ -75,6 +76,7 @@ const valueIcons = [
 export default function ValuesTab() {
   const heroAnim = useInViewAnimation(0.15);
   const gridAnim = useInViewAnimation(0.1);
+  const { language } = useLanguage();
 
   const [allValues, setAllValues] = useState<CoreValueDisplay[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ export default function ValuesTab() {
         if (!res.ok) throw new Error('Failed to fetch');
         const data: CoreValueAPI[] = await res.json();
         const sorted = [...data].sort((a, b) => a.index - b.index).filter(v => v.visible !== false);
-        const langId = 1; // MN
+        const langId = language === 'mn' ? 1 : 2;
 
         setAllValues(sorted.map(cv => {
           const desc = getTr(cv.desc_translations, langId, 'desc');
@@ -115,7 +117,7 @@ export default function ValuesTab() {
       }
     };
     fetchValues();
-  }, []);
+  }, [language]);
 
   if (loading) {
     return (
@@ -146,7 +148,7 @@ export default function ValuesTab() {
               <div className={`space-y-5 ${!isEven ? 'md:order-2' : ''}`}>
                 <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-4 py-1.5 rounded-full text-sm font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                  {idx === 0 ? 'Алсын хараа' : 'Эрхэм зорилго'}
+                  {idx === 0 ? (language === 'mn' ? 'Алсын хараа' : 'Vision') : (language === 'mn' ? 'Эрхэм зорилго' : 'Mission')}
                 </div>
                 <h2
                   className="text-2xl md:text-3xl font-bold leading-tight text-gray-900"
@@ -195,7 +197,7 @@ export default function ValuesTab() {
           </div>
           <div className="relative flex justify-center">
             <span className="bg-gray-50 px-6 text-sm font-semibold text-teal-600 tracking-wider uppercase">
-              Бидний үнэт зүйлс
+              {language === 'mn' ? 'Бидний үнэт зүйлс' : 'Our Core Values'}
             </span>
           </div>
         </div>

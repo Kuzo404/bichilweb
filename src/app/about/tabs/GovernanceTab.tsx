@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -107,10 +108,10 @@ export default function GovernanceTab() {
   const [members, setMembers] = useState<MemberAPI[]>([]);
   const [categories, setCategories] = useState<CategoryAPI[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lang, setLang] = useState<'mn' | 'en'>('mn');
+  const { language } = useLanguage();
   const tabsRef = useRef<HTMLDivElement>(null);
 
-  const langId = lang === 'mn' ? 1 : 2;
+  const langId = language === 'mn' ? 1 : 2;
 
   /* ── Fetch ───────────────────────────────────────────────────────── */
 
@@ -162,32 +163,8 @@ export default function GovernanceTab() {
     <div className="max-w-7xl mx-auto">
       <h2 className="sr-only">Компанийн засаглал</h2>
 
-      {/* Language Toggle + Category Tabs */}
+      {/* Category Tabs */}
       <div className="flex flex-col gap-4 mb-10">
-        {/* Language toggle */}
-        <div className="flex justify-end">
-          <div className="inline-flex bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setLang('mn')}
-              className={clsx(
-                'px-4 py-1.5 text-xs font-semibold rounded-md transition-all',
-                lang === 'mn' ? 'bg-white text-teal-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              )}
-            >
-              MN
-            </button>
-            <button
-              onClick={() => setLang('en')}
-              className={clsx(
-                'px-4 py-1.5 text-xs font-semibold rounded-md transition-all',
-                lang === 'en' ? 'bg-white text-teal-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              )}
-            >
-              EN
-            </button>
-          </div>
-        </div>
-
         {/* Category Tabs - horizontal scroll on mobile */}
         <div
           ref={tabsRef}
