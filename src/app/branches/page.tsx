@@ -5,6 +5,7 @@ import Container from "@/components/Container";
 import BranchesMap from "@/components/BranchesMap";
 import { MapPin, Clock, Phone, Calendar, ChevronDown, ChevronUp, Map } from "lucide-react";
 import { axiosInstance } from "@/lib/axios";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PhoneItem {
   id: number;
@@ -14,6 +15,7 @@ interface PhoneItem {
 interface Branch {
   id: number;
   name: string;
+  name_en: string;
   location: string;
   image: string;
   image_url: string;
@@ -27,11 +29,13 @@ interface Branch {
   phones: PhoneItem[];
   category_id: number | null;
   category_name: string | null;
+  category_name_en: string | null;
 }
 
 interface BranchCategory {
   id: number;
   name: string;
+  name_en: string;
   sort_order: number;
   active: boolean;
 }
@@ -83,6 +87,8 @@ const defaultSettings: BranchSettings = {
 };
 
 export default function BranchesPage() {
+  const { language } = useLanguage();
+  const isEn = language === 'en';
   const [branches, setBranches] = useState<Branch[]>([]);
   const [categories, setCategories] = useState<BranchCategory[]>([]);
   const [settings, setSettings] = useState<BranchSettings>(defaultSettings);
@@ -221,7 +227,7 @@ export default function BranchesPage() {
                         border: activeCategoryId === cat.id ? "none" : "1px solid #e5e7eb",
                       }}
                     >
-                      {cat.name} ({count})
+                      {(isEn && cat.name_en) ? cat.name_en : cat.name} ({count})
                     </button>
                   );
                 })}
@@ -284,7 +290,7 @@ export default function BranchesPage() {
                           className="absolute top-2 left-2 px-2 py-0.5 text-white text-[10px] sm:text-xs font-medium rounded-full backdrop-blur-sm"
                           style={{ background: `${s.card_icon_color}e6` }}
                         >
-                          {branch.category_name}
+                          {(isEn && branch.category_name_en) ? branch.category_name_en : branch.category_name}
                         </span>
                       )}
                     </div>
@@ -295,7 +301,7 @@ export default function BranchesPage() {
                       className="text-sm md:text-base font-bold leading-tight line-clamp-2"
                       style={{ color: s.card_title_color }}
                     >
-                      {branch.name}
+                      {(isEn && branch.name_en) ? branch.name_en : branch.name}
                     </h3>
 
                     {/* Location */}

@@ -11,6 +11,7 @@ interface PhoneItem {
 interface Branch {
   id: number;
   name: string;
+  name_en: string;
   location: string;
   image: string;
   image_url: string;
@@ -24,6 +25,7 @@ interface Branch {
   phones: PhoneItem[];
   category_id: number | null;
   category_name: string | null;
+  category_name_en: string | null;
 }
 
 type Props = {

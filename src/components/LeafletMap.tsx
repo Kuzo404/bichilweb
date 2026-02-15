@@ -15,6 +15,7 @@ interface PhoneItem {
 interface Branch {
   id: number;
   name: string;
+  name_en: string;
   location: string;
   image: string;
   image_url: string;
@@ -28,6 +29,7 @@ interface Branch {
   phones: PhoneItem[];
   category_id: number | null;
   category_name: string | null;
+  category_name_en: string | null;
 }
 
 type Props = {
@@ -143,7 +145,7 @@ export default function LeafletMap({ branches, selectedBranch, onSelect, setting
                 {b.image_url && (
                   <div className="w-full h-[100px] -mt-[10px] -mx-[12px] mb-2 overflow-hidden" style={{ width: 'calc(100% + 24px)' }}>
                     <img
-                      src={`${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${b.image_url}`}
+                      src={b.image_url.startsWith('http') ? b.image_url : `${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${b.image_url}`}
                       alt={b.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
