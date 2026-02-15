@@ -107,14 +107,20 @@ export default function Hero() {
   }, [currentIndex, currentMedia, sliderItems.length])
 
   // Get the right media URL and type for the current device
+  // Cloudinary URL аль хэдийн full URL тул шууд буцаана
   const getMediaSrc = (media: SliderItem): string => {
+    let raw = ''
     if (device === 'mobile' && media.mobile_file) {
-      return `${BACKEND}/${media.mobile_file}`
+      raw = media.mobile_file
+    } else if (device === 'tablet' && media.tablet_file) {
+      raw = media.tablet_file
+    } else {
+      raw = media.file
     }
-    if (device === 'tablet' && media.tablet_file) {
-      return `${BACKEND}/${media.tablet_file}`
-    }
-    return `${BACKEND}/${media.file}`
+    // Full URL байвал шууд буцаах (Cloudinary)
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw
+    // Хуучин local path
+    return `${BACKEND}/${raw}`
   }
 
   const getMediaType = (media: SliderItem): 'i' | 'v' => {
