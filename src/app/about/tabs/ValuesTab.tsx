@@ -41,6 +41,7 @@ interface CoreValueDisplay {
   imageRatio: string;
   titleStyle: { color: string; fontSize: string; fontWeight: string; fontFamily: string };
   descStyle: { color: string; fontSize: string; fontWeight: string; fontFamily: string };
+  subItems?: { icon: string; title: string; desc: string }[];
 }
 
 const getTr = (translations: any[], langId: number, field: string): string => {
@@ -87,15 +88,26 @@ export default function ValuesTab() {
         const sorted = [...data].sort((a, b) => a.index - b.index).filter(v => v.visible !== false);
         const langId = 1; // MN
 
-        setAllValues(sorted.map(cv => ({
-          id: cv.id,
-          title: getTr(cv.title_translations, langId, 'title'),
-          desc: getTr(cv.desc_translations, langId, 'desc'),
-          image: cv.file || '',
-          imageRatio: cv.file_ratio || '16 / 9',
-          titleStyle: getStyle(cv.title_translations, langId),
-          descStyle: getStyle(cv.desc_translations, langId),
-        })));
+        setAllValues(sorted.map(cv => {
+          const desc = getTr(cv.desc_translations, langId, 'desc');
+          let subItems: { icon: string; title: string; desc: string }[] | undefined;
+          try {
+            const parsed = JSON.parse(desc);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title !== undefined) {
+              subItems = parsed;
+            }
+          } catch {}
+          return {
+            id: cv.id,
+            title: getTr(cv.title_translations, langId, 'title'),
+            desc: subItems ? '' : desc,
+            image: cv.file || '',
+            imageRatio: cv.file_ratio || '16 / 9',
+            titleStyle: getStyle(cv.title_translations, langId),
+            descStyle: getStyle(cv.desc_translations, langId),
+            subItems,
+          };
+        }));
       } catch (error) {
         console.error('Failed to fetch core values:', error);
       } finally {
@@ -226,12 +238,26 @@ export default function ValuesTab() {
                   >
                     {value.title}
                   </h3>
-                  <p
-                    className="text-sm text-gray-500 leading-relaxed"
-                    style={value.descStyle.color ? { color: value.descStyle.color, fontSize: value.descStyle.fontSize || undefined } : undefined}
-                  >
-                    {value.desc}
-                  </p>
+                  {value.subItems && value.subItems.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {value.subItems.map((item, si) => (
+                        <div key={si} className="flex items-start gap-2.5">
+                          {item.icon && <span className="text-base mt-0.5 shrink-0">{item.icon}</span>}
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-semibold text-gray-800">{item.title}</h4>
+                            {item.desc && <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p
+                      className="text-sm text-gray-500 leading-relaxed"
+                      style={value.descStyle.color ? { color: value.descStyle.color, fontSize: value.descStyle.fontSize || undefined } : undefined}
+                    >
+                      {value.desc}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
