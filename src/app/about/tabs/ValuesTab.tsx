@@ -159,12 +159,23 @@ export default function ValuesTab() {
                 >
                   {card.title}
                 </h2>
-                <p
-                  className="text-gray-600 leading-relaxed text-lg"
-                  style={card.descStyle.color ? { color: card.descStyle.color } : undefined}
-                >
-                  {card.desc}
-                </p>
+                {card.subItems && card.subItems.length > 0 ? (
+                  <div className="space-y-3">
+                    {card.subItems.map((item, si) => (
+                      <div key={si} className="flex items-start gap-3">
+                        {item.icon && <span className="text-xl mt-0.5 shrink-0">{item.icon}</span>}
+                        <p className="text-gray-600 leading-relaxed text-lg">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p
+                    className="text-gray-600 leading-relaxed text-lg"
+                    style={card.descStyle.color ? { color: card.descStyle.color } : undefined}
+                  >
+                    {card.desc}
+                  </p>
+                )}
               </div>
 
               {card.image ? (
