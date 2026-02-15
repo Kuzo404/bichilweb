@@ -43,6 +43,7 @@ interface AppDownloadData {
   googlebuttonfontcolor: string
   active: boolean
   layout: string
+  mobile_layout: string
   features_layout: string
   titles: TitleItem[]
   lists: ListItem[]
@@ -96,12 +97,20 @@ export default function AppDownload() {
   const sortedLists = [...data.lists].sort((a, b) => (a.index || 0) - (b.index || 0))
   const imageUrl = getImageSrc(data.image_url)
 
-  // Layout logic
+  // Layout logic — Desktop vs Mobile
   const layout = data.layout || 'standard'
-  const isHorizontal = layout === 'standard' || layout === 'reverse'
-  const isReverse = layout === 'reverse'
-  const isTextTop = layout === 'text-top'
-  const isImageTop = layout === 'image-top'
+  const mobileLayout = data.mobile_layout || 'image-top'
+
+  // Desktop layout helpers
+  const isDesktopHorizontal = layout === 'standard' || layout === 'reverse'
+  const isDesktopReverse = layout === 'reverse'
+  const isDesktopTextTop = layout === 'text-top'
+  const isDesktopImageTop = layout === 'image-top'
+
+  // Mobile is always vertical (top/bottom)
+  const isMobileTextTop = mobileLayout === 'text-top'
+  const isMobileImageTop = mobileLayout === 'image-top'
+
   const featuresLayout = data.features_layout || 'vertical'
 
   // Features layout classes
@@ -144,21 +153,27 @@ export default function AppDownload() {
     )
   }
 
-  // Grid layout classes based on layout type
-  const gridClass = isHorizontal
-    ? 'grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center'
-    : 'flex flex-col gap-10 lg:gap-14 items-center max-w-3xl mx-auto'
+  // Desktop grid: horizontal or vertical
+  // Mobile: always flex-col (vertical)
+  const desktopGridClass = isDesktopHorizontal
+    ? 'lg:grid lg:grid-cols-2 lg:gap-14 lg:items-center'
+    : 'lg:flex lg:flex-col lg:gap-14 lg:items-center lg:max-w-3xl lg:mx-auto'
 
-  // Order classes
-  const textOrder = isHorizontal
-    ? (isReverse ? 'lg:order-2 order-last' : 'lg:order-1 order-last')
-    : (isTextTop ? 'order-1' : 'order-2')
+  // Desktop text order
+  const desktopTextOrder = isDesktopHorizontal
+    ? (isDesktopReverse ? 'lg:order-2' : 'lg:order-1')
+    : (isDesktopTextTop ? 'lg:order-1' : 'lg:order-2')
 
-  const imageOrder = isHorizontal
-    ? (isReverse ? 'lg:order-1 order-first' : 'lg:order-2 order-first')
-    : (isImageTop ? 'order-1' : 'order-2')
+  // Desktop image order
+  const desktopImageOrder = isDesktopHorizontal
+    ? (isDesktopReverse ? 'lg:order-1' : 'lg:order-2')
+    : (isDesktopImageTop ? 'lg:order-1' : 'lg:order-2')
 
-  const textAlign = isHorizontal ? 'text-center lg:text-left' : 'text-center'
+  // Mobile text/image order
+  const mobileTextOrder = isMobileTextTop ? 'order-1' : 'order-2'
+  const mobileImageOrder = isMobileImageTop ? 'order-1' : 'order-2'
+
+  const textAlign = isDesktopHorizontal ? 'text-center lg:text-left' : 'text-center'
 
   return (
     <section
@@ -176,63 +191,53 @@ export default function AppDownload() {
       />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <div className={gridClass}>
+        <div className={`flex flex-col gap-10 ${desktopGridClass}`}>
 
           {/* Phone image */}
-          <div className={`flex justify-center ${isHorizontal ? (isReverse ? 'lg:justify-start' : 'lg:justify-end') : ''} relative ${imageOrder}`}>
+          <div className={`flex justify-center ${isDesktopHorizontal ? (isDesktopReverse ? 'lg:justify-start' : 'lg:justify-end') : ''} relative ${mobileImageOrder} ${desktopImageOrder}`}>
             <div className="absolute -inset-10 blur-3xl rounded-full" style={{ backgroundColor: `${data.iconcolor}08` }} />
             <img
               src={imageUrl}
               alt="Mobile App"
-              className={`relative z-10 w-full drop-shadow-[0_40px_80px_rgba(0,0,0,0.12)] transition-transform duration-500 hover:-translate-y-2 ${
-                isHorizontal ? 'max-w-[280px] sm:max-w-[340px] md:max-w-md' : 'max-w-[220px] sm:max-w-[280px] md:max-w-[340px]'
+              className={`relative z-10 w-full drop-shadow-[0_40px_80px_rgba(0,0,0,0.12)] transition-transform duration-500 hover:-translate-y-2 max-w-[220px] sm:max-w-[260px] ${
+                isDesktopHorizontal ? 'md:max-w-[300px] lg:max-w-md' : 'md:max-w-[280px] lg:max-w-[340px]'
               }`}
             />
           </div>
 
           {/* Text content */}
-          <div className={`flex flex-col gap-6 sm:gap-8 ${textAlign} ${textOrder}`}>
+          <div className={`flex flex-col gap-6 sm:gap-8 ${textAlign} ${mobileTextOrder} ${desktopTextOrder}`}>
 
-            {/* Scattered headline - mobile: normal flow, desktop: absolute positioned */}
-            {/* Mobile: normal stacked text */}
-            <div className={`flex flex-wrap gap-x-2 sm:gap-x-3 gap-y-1 md:hidden ${!isHorizontal ? 'justify-center' : ''}`}>
-              {sortedTitles.map((t) => (
-                <span
-                  key={t.id}
-                  style={{
-                    color: t.color,
-                    fontSize: `clamp(${Math.min(t.size || 48, 24)}px, 5vw, ${Math.min(t.size || 48, 36)}px)`,
-                    fontWeight: Number(t.fontweight) || 800,
-                    lineHeight: 1.2,
-                  }}
+            {/* Scattered title words — same layout on all devices, scales proportionally */}
+            <div className="w-full overflow-hidden">
+              <div className="h-[140px] sm:h-[170px] md:h-[220px] lg:h-[340px]">
+                <div
+                  className="relative origin-top-left scale-[0.42] sm:scale-[0.5] md:scale-[0.65] lg:scale-100"
+                  style={{ width: '600px', height: '340px' }}
                 >
-                  {lang === 'mn' ? t.labelmn : t.labelen}
-                </span>
-              ))}
-            </div>
-            {/* Desktop: scattered absolute positioning */}
-            <div className={`relative min-h-[260px] sm:min-h-[300px] md:min-h-[340px] hidden md:block`}>
-              {sortedTitles.map((t) => (
-                <span
-                  key={t.id}
-                  className="absolute transition-all duration-300"
-                  style={{
-                    top: `${t.top * 4}px`,
-                    left: `${t.left * 4}px`,
-                    color: t.color,
-                    fontSize: `${t.size || 48}px`,
-                    fontWeight: Number(t.fontweight) || 800,
-                    transform: `rotate(${t.rotate}deg)`,
-                    textShadow: '0 2px 20px rgba(0,0,0,0.05)',
-                  }}
-                >
-                  {lang === 'mn' ? t.labelmn : t.labelen}
-                </span>
-              ))}
+                  {sortedTitles.map((t) => (
+                    <span
+                      key={t.id}
+                      className="absolute whitespace-nowrap transition-all duration-300"
+                      style={{
+                        top: `${t.top * 4}px`,
+                        left: `${t.left * 4}px`,
+                        color: t.color,
+                        fontSize: `${t.size || 48}px`,
+                        fontWeight: Number(t.fontweight) || 800,
+                        transform: `rotate(${t.rotate}deg)`,
+                        textShadow: '0 2px 20px rgba(0,0,0,0.05)',
+                      }}
+                    >
+                      {lang === 'mn' ? t.labelmn : t.labelen}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Features - layout dependent */}
-            <div className={`${featuresContainerClass} mt-1 sm:mt-2 ${!isHorizontal ? 'max-w-lg mx-auto w-full' : ''}`}>
+            <div className={`${featuresContainerClass} mt-1 sm:mt-2 ${!isDesktopHorizontal ? 'max-w-lg mx-auto w-full' : ''}`}>
               {sortedLists.map((item, idx) => (
                 <div
                   key={item.id}
@@ -256,7 +261,7 @@ export default function AppDownload() {
             </div>
 
             {/* Download Buttons */}
-            <div className={`flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6 ${isHorizontal ? 'justify-center lg:justify-start' : 'justify-center'}`}>
+            <div className={`flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6 ${isDesktopHorizontal ? 'justify-center lg:justify-start' : 'justify-center'}`}>
               {data.appstore && (
                 <a
                   href={data.appstore}
