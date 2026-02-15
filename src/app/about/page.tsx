@@ -55,21 +55,21 @@ export default function AboutPage() {
       
       {/* Hero Section */}
       {bannerImage && (
-      <section className="relative h-[400px] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[520px] md:h-[600px] flex items-end justify-center overflow-hidden pb-20">
         <Image
           src={bannerImage}
           alt="About Us Hero"
           fill
-          className="object-cover brightness-50"
+          className="object-cover brightness-[0.4]"
           priority
         />
-        <div className="absolute inset-0 bg-linear-to-t from-teal-900/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
         <div className="relative z-10 text-center text-white px-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {bannerTitle && (
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">{bannerTitle}</h1>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-tight drop-shadow-lg">{bannerTitle}</h1>
           )}
           {bannerSubtitle && (
-            <p className="text-lg md:text-xl opacity-90">{bannerSubtitle}</p>
+            <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">{bannerSubtitle}</p>
           )}
         </div>
       </section>
