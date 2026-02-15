@@ -220,7 +220,15 @@ export default function ValuesTab() {
       {/* ── Values Grid ─────────────────────────────────────────── */}
       {valueCards.length > 0 && (
         <section ref={gridAnim.ref}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`grid gap-6 ${
+            valueCards.length === 1
+              ? 'grid-cols-1 max-w-md mx-auto'
+              : valueCards.length === 2
+                ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto'
+                : valueCards.length === 4
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4'
+                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+          }`}>
             {valueCards.map((value, index) => (
               <div
                 key={value.id}

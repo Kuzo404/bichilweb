@@ -238,11 +238,23 @@ export default function Header() {
 
   // categories эхэнд → services → бусад статик цэснүүд
   // If admin menu is available, use it; otherwise build dynamically
+  // "Танилцуулга" цэсийг үргэлж нэмнэ (DB-д байхгүй бол)
+  const aboutMenuItem: MenuItem = {
+    title_mn: 'Танилцуулга',
+    title_en: 'About',
+    href: '/about',
+  }
+
+  const hasAboutInAdminMenu = adminHeaderMenu.some(
+    (m) => m.href === '/about' || m.title_mn === 'Танилцуулга' || m.title_en === 'About'
+  )
+
   const menuItems: MenuItem[] = adminHeaderMenu.length > 0 
-    ? adminHeaderMenu 
+    ? hasAboutInAdminMenu ? adminHeaderMenu : [...adminHeaderMenu, aboutMenuItem]
     : [
         ...categoryMenuItems,
         ...getStaticMenuItems(serviceItems, dynamicPages),
+        aboutMenuItem,
       ]
 
   // ── Scroll ────────────────────────────────────────────────────────────────

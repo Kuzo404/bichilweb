@@ -1,9 +1,28 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+/* ── Intersection Observer hook (callback-ref pattern) ─────────── */
+function useInViewAnimation(threshold = 0.1) {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [node, threshold]);
+
+  const ref = useCallback((el: HTMLDivElement | null) => { setNode(el); }, []);
+  return { ref, visible };
+}
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -48,14 +67,16 @@ const getCatLabel = (cat: CategoryAPI, langId: number) => {
 const getTrans = (translations: Translation[], langId: number) =>
   translations.find((t) => t.language === langId);
 
-/* ── PersonCard ────────────────────────────────────────────────────── */
+/* ── PersonCard (Modern) ───────────────────────────────────────────── */
 
-function PersonCard({ image, name, subtitle, onClick, priority = false }: {
+function PersonCard({ image, name, subtitle, onClick, priority = false, index = 0, visible = true }: {
   image: string;
   name: string;
   subtitle: string;
   onClick: () => void;
   priority?: boolean;
+  index?: number;
+  visible?: boolean;
 }) {
   return (
     <div
@@ -63,9 +84,13 @@ function PersonCard({ image, name, subtitle, onClick, priority = false }: {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:border-teal-200/60 transition-all duration-300 outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+      className={`group cursor-pointer relative bg-white rounded-2xl overflow-hidden border border-gray-100/80 shadow-[0_2px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] hover:border-teal-200/80 transition-all duration-500 outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 hover:-translate-y-1
+        ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+      `}
+      style={{ transitionDelay: `${index * 80}ms` }}
     >
-      <div className="relative w-full aspect-[3/4] bg-gray-100 overflow-hidden">
+      {/* Image Container */}
+      <div className="relative w-full aspect-[3/4] bg-gray-50 overflow-hidden">
         {image ? (
           <Image
             src={image}
@@ -73,26 +98,41 @@ function PersonCard({ image, name, subtitle, onClick, priority = false }: {
             fill
             priority={priority}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+            className="object-cover object-top group-hover:scale-[1.06] transition-transform duration-700 ease-out"
             onError={(e) => {
               (e.target as HTMLImageElement).src = '/img/avatar-placeholder.png';
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 text-gray-300">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-50 to-gray-50 text-teal-200">
             <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Hover action hint */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 transform scale-75 group-hover:scale-100 transition-transform duration-500">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </div>
+        </div>
       </div>
 
-      <div className="p-4 sm:p-5">
-        <h3 className="text-sm sm:text-[15px] font-semibold text-gray-900 group-hover:text-teal-700 transition-colors line-clamp-2">
+      {/* Info Section */}
+      <div className="p-4 sm:p-5 relative">
+        {/* Teal accent line */}
+        <div className="absolute top-0 left-4 right-4 sm:left-5 sm:right-5 h-px bg-gradient-to-r from-transparent via-teal-300/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+        
+        <h3 className="text-sm sm:text-[15px] font-bold text-gray-900 group-hover:text-teal-700 transition-colors duration-300 line-clamp-2 leading-snug">
           {name}
         </h3>
-        <p className="text-[11px] sm:text-xs text-gray-500 uppercase tracking-widest mt-1.5 line-clamp-1">
+        <p className="text-[11px] sm:text-xs text-gray-400 uppercase tracking-[0.15em] mt-2 line-clamp-1 font-medium">
           {subtitle}
         </p>
       </div>
@@ -110,6 +150,7 @@ export default function GovernanceTab() {
   const [loading, setLoading] = useState(true);
   const { language } = useLanguage();
   const tabsRef = useRef<HTMLDivElement>(null);
+  const gridAnim = useInViewAnimation(0.05);
 
   const langId = language === 'mn' ? 1 : 2;
 
@@ -141,6 +182,7 @@ export default function GovernanceTab() {
   }, []);
 
   const displayed = members.filter((m) => m.type === activeSubTab);
+  const activeCatCount = displayed.length;
 
   /* ── Body scroll lock ────────────────────────────────────────────── */
 
@@ -163,80 +205,108 @@ export default function GovernanceTab() {
     <div className="max-w-7xl mx-auto">
       <h2 className="sr-only">Компанийн засаглал</h2>
 
-      {/* Category Tabs */}
-      <div className="flex flex-col gap-4 mb-10">
-        {/* Category Tabs - horizontal scroll on mobile */}
+      {/* Category Tabs - Modern style */}
+      <div className="mb-10 sm:mb-12">
         <div
           ref={tabsRef}
-          className="flex overflow-x-auto no-scrollbar gap-2 sm:gap-3 pb-2 sm:justify-center snap-x snap-mandatory"
+          className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:justify-center snap-x snap-mandatory"
         >
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveSubTab(cat.key)}
-              className={clsx(
-                'px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 snap-start flex-shrink-0',
-                activeSubTab === cat.key
-                  ? 'bg-teal-600 text-white shadow-md'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-teal-300 hover:text-teal-600'
-              )}
-            >
-              {getCatLabel(cat, langId)}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const isActive = activeSubTab === cat.key;
+            const count = members.filter((m) => m.type === cat.key).length;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveSubTab(cat.key)}
+                className={clsx(
+                  'relative px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 snap-start flex-shrink-0 flex items-center gap-2',
+                  isActive
+                    ? 'bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-lg shadow-teal-500/25'
+                    : 'bg-white text-gray-500 border border-gray-200/80 hover:border-teal-300 hover:text-teal-600 hover:shadow-md'
+                )}
+              >
+                {getCatLabel(cat, langId)}
+                {count > 0 && (
+                  <span className={clsx(
+                    'text-[11px] font-semibold min-w-[20px] h-5 flex items-center justify-center rounded-full transition-colors',
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-100 text-gray-400'
+                  )}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Content */}
       {loading ? (
         <div className="py-24 text-center text-gray-500">
-          <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm">Ачаалж байна...</p>
+          <div className="w-10 h-10 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-gray-400">{language === 'mn' ? 'Ачаалж байна...' : 'Loading...'}</p>
         </div>
       ) : displayed.length === 0 ? (
-        <div className="py-24 text-center text-gray-400">
-          <svg className="w-16 h-16 mx-auto mb-4 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <p className="text-sm">Мэдээлэл байхгүй</p>
+        <div className="py-24 text-center">
+          <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gray-50 flex items-center justify-center">
+            <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <p className="text-sm text-gray-400">{language === 'mn' ? 'Мэдээлэл байхгүй' : 'No data available'}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {displayed.map((person, idx) => {
-            const tr = getTrans(person.translations, langId);
-            return (
-              <PersonCard
-                key={person.id}
-                image={person.image}
-                name={tr?.name || ''}
-                subtitle={tr?.role || ''}
-                onClick={() => setSelectedPerson(person)}
-                priority={idx < 4}
-              />
-            );
-          })}
+        <div ref={gridAnim.ref}>
+          <div className={`grid gap-4 sm:gap-6 ${
+            activeCatCount === 1
+              ? 'grid-cols-1 max-w-xs mx-auto'
+              : activeCatCount === 2
+                ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto'
+                : activeCatCount === 3
+                  ? 'grid-cols-2 sm:grid-cols-3 max-w-4xl mx-auto'
+                  : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+          }`}>
+            {displayed.map((person, idx) => {
+              const tr = getTrans(person.translations, langId);
+              return (
+                <PersonCard
+                  key={person.id}
+                  image={person.image}
+                  name={tr?.name || ''}
+                  subtitle={tr?.role || ''}
+                  onClick={() => setSelectedPerson(person)}
+                  priority={idx < 4}
+                  index={idx}
+                  visible={gridAnim.visible}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Detail Modal - Modern */}
       {selectedPerson && (() => {
         const tr = getTrans(selectedPerson.translations, langId);
         return (
           <div
-            className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-0 sm:items-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+            className="fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-0 sm:items-center p-3 sm:p-4 bg-black/60 backdrop-blur-md overflow-y-auto"
             onClick={() => setSelectedPerson(null)}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
             <div
-              className="bg-white w-full max-w-4xl rounded-2xl overflow-hidden relative shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+              className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden relative shadow-[0_32px_64px_rgba(0,0,0,0.2)] animate-in fade-in zoom-in-95 duration-300 my-auto"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close button */}
               <button
                 onClick={() => setSelectedPerson(null)}
                 aria-label="Хаах"
-                className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur-sm text-gray-500 hover:text-gray-700 rounded-full transition-colors shadow-sm"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 p-2.5 bg-white/90 backdrop-blur-sm text-gray-400 hover:text-gray-700 hover:bg-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -245,8 +315,8 @@ export default function GovernanceTab() {
 
               <div className="flex flex-col md:flex-row">
                 {/* Image */}
-                <div className="w-full md:w-2/5 flex-shrink-0">
-                  <div className="relative aspect-[3/4] w-full bg-gray-100">
+                <div className="w-full md:w-2/5 flex-shrink-0 relative">
+                  <div className="relative aspect-[3/4] sm:aspect-auto sm:h-full min-h-[280px] w-full bg-gray-50">
                     {selectedPerson.image ? (
                       <Image
                         src={selectedPerson.image}
@@ -258,27 +328,34 @@ export default function GovernanceTab() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-50 to-gray-50 text-teal-200">
                         <svg className="w-24 h-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
                     )}
+                    {/* Subtle gradient on mobile */}
+                    <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white to-transparent md:hidden" />
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="w-full md:w-3/5 p-6 sm:p-8 flex flex-col justify-start">
-                  <h3 id="modal-title" className="text-xl sm:text-2xl font-bold text-gray-900">
+                <div className="w-full md:w-3/5 p-5 sm:p-8 md:p-10 flex flex-col justify-start">
+                  {/* Role badge */}
+                  {tr?.role && (
+                    <div className="inline-flex items-center self-start gap-1.5 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                      {tr.role}
+                    </div>
+                  )}
+
+                  <h3 id="modal-title" className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight">
                     {tr?.name}
                   </h3>
-                  <p className="text-sm text-teal-600 uppercase tracking-wide mt-1 mb-6 font-medium">
-                    {tr?.role}
-                  </p>
 
                   {selectedPerson.type === 'branch' && tr?.location && (
-                    <p className="text-sm text-slate-600 mb-4 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-teal-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
@@ -287,11 +364,14 @@ export default function GovernanceTab() {
                   )}
 
                   {tr?.description && (
-                    <div className="space-y-3 text-gray-600 leading-7 text-sm overflow-y-auto max-h-[50vh]">
-                      {tr.description.split('\n\n').map((paragraph: string, i: number) => (
-                        <p key={i}>{paragraph}</p>
-                      ))}
-                    </div>
+                    <>
+                      <div className="w-12 h-px bg-gradient-to-r from-teal-500 to-transparent mt-5 mb-5" />
+                      <div className="space-y-3.5 text-gray-600 leading-7 text-[15px] overflow-y-auto max-h-[45vh] pr-1 scrollbar-thin">
+                        {tr.description.split('\n\n').map((paragraph: string, i: number) => (
+                          <p key={i}>{paragraph}</p>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
