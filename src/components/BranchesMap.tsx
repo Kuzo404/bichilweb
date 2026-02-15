@@ -13,12 +13,17 @@ interface Branch {
   name: string;
   name_en: string;
   location: string;
+  location_en: string;
   image: string;
   image_url: string;
   area: string;
+  area_en: string;
   city: string;
+  city_en: string;
   district: string;
+  district_en: string;
   open: string;
+  open_en: string;
   time: string;
   latitude: string;
   longitude: string;

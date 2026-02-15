@@ -17,12 +17,17 @@ interface Branch {
   name: string;
   name_en: string;
   location: string;
+  location_en: string;
   image: string;
   image_url: string;
   area: string;
+  area_en: string;
   city: string;
+  city_en: string;
   district: string;
+  district_en: string;
   open: string;
+  open_en: string;
   time: string;
   latitude: string;
   longitude: string;
@@ -48,6 +53,7 @@ export interface BranchSettings {
   popup_btn_bg: string;
   popup_btn_text: string;
   popup_btn_label: string;
+  popup_btn_label_en: string;
   card_bg: string;
   card_border: string;
   card_title_color: string;
@@ -56,11 +62,13 @@ export interface BranchSettings {
   card_btn_bg: string;
   card_btn_text: string;
   card_btn_label: string;
+  card_btn_label_en: string;
   marker_color: string;
   marker_selected_color: string;
   map_btn_bg: string;
   map_btn_text: string;
   map_btn_label: string;
+  map_btn_label_en: string;
 }
 
 const defaultSettings: BranchSettings = {
@@ -71,6 +79,7 @@ const defaultSettings: BranchSettings = {
   popup_btn_bg: "#0d9488",
   popup_btn_text: "#ffffff",
   popup_btn_label: "Чиглэл авах",
+  popup_btn_label_en: "",
   card_bg: "#ffffff",
   card_border: "#e5e7eb",
   card_title_color: "#111827",
@@ -79,11 +88,13 @@ const defaultSettings: BranchSettings = {
   card_btn_bg: "#f0fdfa",
   card_btn_text: "#0d9488",
   card_btn_label: "Газрын зургаас харах",
+  card_btn_label_en: "",
   marker_color: "#0d9488",
   marker_selected_color: "#0f766e",
   map_btn_bg: "#0d9488",
   map_btn_text: "#ffffff",
   map_btn_label: "Газрын зураг",
+  map_btn_label_en: "",
 };
 
 export default function BranchesPage() {
@@ -244,7 +255,7 @@ export default function BranchesPage() {
                 style={{ background: s.map_btn_bg, color: s.map_btn_text }}
               >
                 <Map className="w-4 h-4" />
-                {s.map_btn_label} {mapOpen ? 'хаах' : 'нээх'}
+                {(isEn && s.map_btn_label_en) ? s.map_btn_label_en : s.map_btn_label} {mapOpen ? (isEn ? 'close' : 'хаах') : (isEn ? 'open' : 'нээх')}
                 {mapOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             </div>
@@ -308,12 +319,13 @@ export default function BranchesPage() {
                     <div className="flex items-start gap-1.5">
                       <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: s.card_icon_color }} />
                       <div className="text-xs md:text-sm min-w-0" style={{ color: s.card_text_color }}>
-                        <p className="line-clamp-2">{branch.location}</p>
+                        <p className="line-clamp-2">{(isEn && branch.location_en) ? branch.location_en : branch.location}</p>
                         {(branch.area || branch.city) && (
                           <p className="text-[10px] md:text-xs opacity-60 mt-0.5 line-clamp-1">
-                            {[branch.area, branch.city, branch.district ? `${branch.district}-р хороо` : ""]
-                              .filter(Boolean)
-                              .join(", ")}
+                            {isEn
+                              ? [branch.area_en || branch.area, branch.city_en || branch.city, branch.district_en || branch.district].filter(Boolean).join(", ")
+                              : [branch.area, branch.city, branch.district ? `${branch.district}-р хороо` : ""].filter(Boolean).join(", ")
+                            }
                           </p>
                         )}
                       </div>
@@ -323,7 +335,7 @@ export default function BranchesPage() {
                     {branch.open && (
                       <div className="hidden sm:flex items-center gap-1.5" style={{ color: s.card_text_color }}>
                         <Calendar className="w-3.5 h-3.5 flex-shrink-0" style={{ color: s.card_icon_color }} />
-                        <p className="text-xs md:text-sm">{branch.open}</p>
+                        <p className="text-xs md:text-sm">{(isEn && branch.open_en) ? branch.open_en : branch.open}</p>
                       </div>
                     )}
 
@@ -367,7 +379,7 @@ export default function BranchesPage() {
                       onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                     >
-                      {s.card_btn_label}
+                      {(isEn && s.card_btn_label_en) ? s.card_btn_label_en : s.card_btn_label}
                     </button>
                   </div>
                 </div>

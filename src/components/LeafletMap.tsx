@@ -6,6 +6,7 @@ import L from "leaflet";
 import { MapPin, Clock } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import type { BranchSettings } from "@/app/branches/page";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PhoneItem {
   id: number;
@@ -17,12 +18,17 @@ interface Branch {
   name: string;
   name_en: string;
   location: string;
+  location_en: string;
   image: string;
   image_url: string;
   area: string;
+  area_en: string;
   city: string;
+  city_en: string;
   district: string;
+  district_en: string;
   open: string;
+  open_en: string;
   time: string;
   latitude: string;
   longitude: string;
@@ -94,6 +100,8 @@ function MapController({ branches, selectedBranch }: { branches: Branch[]; selec
 export default function LeafletMap({ branches, selectedBranch, onSelect, settings }: Props) {
   const markerRefs = useRef<Record<number, L.Marker>>({});
   const s = settings;
+  const { language } = useLanguage();
+  const isEn = language === 'en';
 
   const defaultMarker = useMemo(() => makeIcon(s.marker_color, "normal"), [s.marker_color]);
   const selectedMarker = useMemo(() => makeIcon(s.marker_selected_color, "selected"), [s.marker_selected_color]);
@@ -160,7 +168,7 @@ export default function LeafletMap({ branches, selectedBranch, onSelect, setting
                   className="font-bold text-[12px] mb-1 leading-tight"
                   style={{ color: s.popup_title_color }}
                 >
-                  {b.name}
+                  {(isEn && b.name_en) ? b.name_en : b.name}
                 </h3>
 
                 {/* Info rows — location & time only */}
@@ -168,10 +176,13 @@ export default function LeafletMap({ branches, selectedBranch, onSelect, setting
                   <div className="flex items-start gap-1">
                     <MapPin className="w-3 h-3 mt-0.5 shrink-0" style={{ color: s.popup_icon_color }} />
                     <div>
-                      <span className="text-[11px] leading-snug block" style={{ color: s.popup_text_color }}>{b.location}</span>
+                      <span className="text-[11px] leading-snug block" style={{ color: s.popup_text_color }}>{(isEn && b.location_en) ? b.location_en : b.location}</span>
                       {(b.area || b.city) && (
                         <span className="text-[10px] opacity-60 block" style={{ color: s.popup_text_color }}>
-                          {[b.area, b.city, b.district ? `${b.district}-р хороо` : ""].filter(Boolean).join(", ")}
+                          {isEn
+                            ? [b.area_en || b.area, b.city_en || b.city, b.district_en || b.district].filter(Boolean).join(", ")
+                            : [b.area, b.city, b.district ? `${b.district}-р хороо` : ""].filter(Boolean).join(", ")
+                          }
                         </span>
                       )}
                     </div>
@@ -195,7 +206,7 @@ export default function LeafletMap({ branches, selectedBranch, onSelect, setting
                   className="flex items-center justify-center gap-1 w-full px-2 py-1.5 rounded-lg font-medium transition-opacity hover:opacity-90 text-[11px]"
                   style={{ background: s.popup_btn_bg, color: s.popup_btn_text }}
                 >
-                  {s.popup_btn_label}
+                  {(isEn && s.popup_btn_label_en) ? s.popup_btn_label_en : s.popup_btn_label}
                 </a>
               </div>
             </Popup>
