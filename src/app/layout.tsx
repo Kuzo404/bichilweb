@@ -19,8 +19,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://bichilglobus.mn'),
   title: "BichilGlobus - Таны бизнесийг дэлхийд холбоно",
   description: "BichilGlobus нь таны бизнесийг олон улсын зах зээлд гаргахад туслах найдвартай түнш юм.",
+  openGraph: {
+    title: "BichilGlobus",
+    description: "BichilGlobus нь таны бизнесийг олон улсын зах зээлд гаргахад туслах найдвартай түнш юм.",
+    siteName: "BichilGlobus",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

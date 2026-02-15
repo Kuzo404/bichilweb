@@ -436,7 +436,7 @@ export default function NewsDetailPage() {
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                   </svg>
-                  Онцлох
+                  {tr.featured}
                 </span>
               )}
               <span className="text-white/70 text-sm flex items-center gap-1.5">
@@ -491,24 +491,47 @@ export default function NewsDetailPage() {
               </div>
             )}
 
-            {/* YouTube Video */}
+            {/* Video */}
             {news.video && (() => {
-              const getYouTubeId = (url: string): string | null => {
-                const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/)
-                return match ? match[1] : null
+              const getEmbedUrl = (url: string): string => {
+                try {
+                  const u = new URL(url)
+                  const host = u.hostname.toLowerCase()
+                  if (host.includes('youtube.com')) {
+                    const vid = u.searchParams.get('v')
+                    return vid ? `https://www.youtube.com/embed/${vid}` : ''
+                  }
+                  if (host === 'youtu.be') {
+                    const vid = u.pathname.replace('/', '')
+                    return vid ? `https://www.youtube.com/embed/${vid}` : ''
+                  }
+                  if (host.includes('facebook.com') || host.includes('fb.watch')) {
+                    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`
+                  }
+                  if (host.includes('tiktok.com')) {
+                    const match = url.match(/\/video\/(\d+)/)
+                    if (match) return `https://www.tiktok.com/embed/v2/${match[1]}`
+                    return url
+                  }
+                  if (host.includes('instagram.com')) {
+                    const clean = url.split('?')[0].replace(/\/$/, '')
+                    return `${clean}/embed`
+                  }
+                  return url
+                } catch { return '' }
               }
-              const videoId = getYouTubeId(news.video)
-              if (!videoId) return null
+              const embedUrl = getEmbedUrl(news.video)
+              if (!embedUrl) return null
               return (
                 <div className="px-6 md:px-10 pt-6 pb-2">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
-                    Видео
+                    {tr.video}
                   </h3>
                   <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
                     <iframe
-                      src={`https://www.youtube.com/embed/${videoId}`}
-                      title="YouTube video"
+                      src={embedUrl}
+                      title="Video"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="absolute inset-0 w-full h-full rounded-xl"
