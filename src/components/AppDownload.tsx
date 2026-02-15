@@ -208,13 +208,29 @@ export default function AppDownload() {
           {/* Text content */}
           <div className={`flex flex-col gap-6 sm:gap-8 ${textAlign} ${mobileTextOrder} ${desktopTextOrder}`}>
 
-            {/* Scattered title words — same layout on all devices, scales proportionally */}
-            <div className="w-full overflow-hidden">
-              <div className="h-[140px] sm:h-[170px] md:h-[220px] lg:h-[340px]">
-                <div
-                  className="relative origin-top-left scale-[0.42] sm:scale-[0.5] md:scale-[0.65] lg:scale-100"
-                  style={{ width: '600px', height: '340px' }}
+            {/* Title words — Mobile: centered stacked large, Desktop: scattered absolute */}
+            {/* Mobile titles */}
+            <div className="flex flex-col items-center gap-1 lg:hidden">
+              {sortedTitles.map((t) => (
+                <span
+                  key={t.id}
+                  className="transition-all duration-300"
+                  style={{
+                    color: t.color,
+                    fontSize: `${Math.max((t.size || 48) * 0.7, 28)}px`,
+                    fontWeight: Number(t.fontweight) || 800,
+                    lineHeight: 1.2,
+                    textShadow: '0 2px 20px rgba(0,0,0,0.05)',
+                  }}
                 >
+                  {lang === 'mn' ? t.labelmn : t.labelen}
+                </span>
+              ))}
+            </div>
+            {/* Desktop titles — scattered absolute positioning */}
+            <div className="hidden lg:block w-full overflow-hidden">
+              <div className="h-[340px]">
+                <div className="relative" style={{ width: '600px', height: '340px' }}>
                   {sortedTitles.map((t) => (
                     <span
                       key={t.id}
