@@ -138,8 +138,11 @@ function NewsPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [latestHeading, setLatestHeading] = useState('Сүүлийн мэдээнүүд')
   const [featuredHeading, setFeaturedHeading] = useState('Онцлох мэдээ')
+  const [latestHeadingEn, setLatestHeadingEn] = useState('')
+  const [featuredHeadingEn, setFeaturedHeadingEn] = useState('')
 
   // Get language ID (1 for Mongolian, 2 for English)
+  const isEn = language === 'en'
   const languageId = language === 'mn' ? 1 : 2
 
   // Translations
@@ -287,6 +290,8 @@ function NewsPageContent() {
       if (response.data) {
         setLatestHeading(response.data.latest_heading || 'Сүүлийн мэдээнүүд')
         setFeaturedHeading(response.data.featured_heading || 'Онцлох мэдээ')
+        setLatestHeadingEn(response.data.latest_heading_en || '')
+        setFeaturedHeadingEn(response.data.featured_heading_en || '')
       }
     } catch (error) {
       console.error('Failed to fetch page settings:', error)
@@ -508,7 +513,7 @@ function NewsPageContent() {
                   <svg className="w-4 h-4 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                   </svg>
-                  {featuredHeading}
+                  {(isEn && featuredHeadingEn) ? featuredHeadingEn : featuredHeading}
                 </h2>
                 <div className="grid grid-cols-1 gap-5">
                   {/* All pinned news - Large cards */}
@@ -556,7 +561,7 @@ function NewsPageContent() {
             {/* Regular News Section */}
             {gridItems.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">{latestHeading}</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-4">{(isEn && latestHeadingEn) ? latestHeadingEn : latestHeading}</h3>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {gridItems.map((item) => (
                     <Link

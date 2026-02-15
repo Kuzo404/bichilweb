@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import Container from "@/components/Container"
 import { axiosInstance } from '@/lib/axios'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface ApiTranslation {
   id?: number
@@ -115,12 +116,39 @@ const renderSocialPlatformIcon = (platform: string) => {
 export default function NewsDetailPage() {
   const params = useParams();
   const newsSlug = params.id as string;
+  const { language } = useLanguage();
+  const isEn = language === 'en';
+  const languageId = isEn ? 2 : 1;
   const [news, setNews] = useState<NewsItem | null>(null);
   const [categories, setCategories] = useState<CategoryAPI[]>([]);
   const [allNews, setAllNews] = useState<ApiNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const tr = {
+    featured: isEn ? 'Featured' : 'Онцлох',
+    min: isEn ? 'min' : 'мин',
+    home: isEn ? 'Home' : 'Нүүр',
+    news: isEn ? 'News' : 'Мэдээ',
+    video: isEn ? 'Video' : 'Видео',
+    additionalImages: isEn ? 'Gallery' : 'Нэмэлт зургууд',
+    shareNews: isEn ? 'Share this news' : 'Мэдээг хуваалцах',
+    copyLink: isEn ? 'Link copied' : 'Мэдээний холбоосыг хуулсан',
+    relatedNews: isEn ? 'Related News' : 'Холбоотой мэдээ',
+    nextNews: isEn ? 'Next News' : 'Дараагийн мэдээ',
+    notFound: isEn ? 'News not found' : 'Мэдээ олдсонгүй',
+    notFoundDesc: isEn ? 'Sorry, the news you are looking for was not found.' : 'Уучлаарай, хайсан мэдээ олдсонгүй.',
+    backToNews: isEn ? 'Back to News' : 'Мэдээ рүү буцах',
+    errorTitle: isEn ? 'Error occurred' : 'Алдаа гарлаа',
+    errorDesc: isEn ? 'Failed to load news. Please try again.' : 'Мэдээ ачаалахад асуудал гарав. Дахин оролдоно уу.',
+    reload: isEn ? 'Reload' : 'Дахин ачаалах',
+    shareOn: isEn ? 'Share on' : '',
+    copyLinkTitle: isEn ? 'Copy link' : 'Холбоос хуулах',
+    largeImage: isEn ? 'Full image' : 'Том зураг',
+    noTitle: isEn ? 'Untitled' : 'Гарчиггүй',
+    defaultCategory: isEn ? 'News' : 'Мэдээ',
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -131,7 +159,7 @@ export default function NewsDetailPage() {
     if (allNews.length > 0 && categories.length > 0) {
       fetchNews();
     }
-  }, [newsSlug, allNews, categories]);
+  }, [newsSlug, allNews, categories, languageId]);
 
   const fetchCategories = async () => {
     try {
@@ -170,13 +198,13 @@ export default function NewsDetailPage() {
       }
 
       // Get translations
-      const titleMn = getTranslation(foundNews.title_translations, 1);
-      const excerptMn = getTranslation(foundNews.shortdesc_translations, 1);
-      const contentMn = getTranslation(foundNews.content_translations, 1);
+      const title = getTranslation(foundNews.title_translations, languageId);
+      const excerpt = getTranslation(foundNews.shortdesc_translations, languageId);
+      const content = getTranslation(foundNews.content_translations, languageId);
 
       // Get category label
       const category = categories.find(c => c.id === foundNews.category);
-      const categoryLabel = category ? getCategoryTranslation(category.translations, 1) : 'Мэдээ';
+      const categoryLabel = category ? getCategoryTranslation(category.translations, languageId) : tr.defaultCategory;
 
       // Use image_url if available
       const imageUrl = foundNews.image_url || foundNews.image || '/placeholder-news.jpg';
@@ -184,10 +212,10 @@ export default function NewsDetailPage() {
       // Map to frontend format
       const mappedNews: NewsItem = {
         id: foundNews.id,
-        title: titleMn?.label || 'Гарчиггүй',
+        title: title?.label || tr.noTitle,
         slug: foundNews.slug || `news-${foundNews.id}`,
-        excerpt: excerptMn?.label || '',
-        content: contentMn?.label || '',
+        excerpt: excerpt?.label || '',
+        content: content?.label || '',
         bannerImage: imageUrl,
         category: foundNews.category,
         categoryLabel: categoryLabel,
@@ -220,14 +248,14 @@ export default function NewsDetailPage() {
       )
       .slice(0, 3)
       .map(item => {
-        const titleMn = getTranslation(item.title_translations, 1);
+        const titleTr = getTranslation(item.title_translations, languageId);
         const category = categories.find(c => c.id === item.category);
-        const categoryLabel = category ? getCategoryTranslation(category.translations, 1) : 'Мэдээ';
+        const categoryLabel = category ? getCategoryTranslation(category.translations, languageId) : tr.defaultCategory;
         const imageUrl = item.image_url || item.image || '/placeholder-news.jpg';
 
         return {
           id: item.id,
-          title: titleMn?.label || 'Гарчиггүй',
+          title: titleTr?.label || tr.noTitle,
           slug: item.slug || `news-${item.id}`,
           excerpt: '',
           content: '',
@@ -258,14 +286,14 @@ export default function NewsDetailPage() {
     
     if (currentIndex >= 0 && currentIndex < sortedByDate.length - 1) {
       const nextItem = sortedByDate[currentIndex + 1];
-      const titleMn = getTranslation(nextItem.title_translations, 1);
+      const titleTr = getTranslation(nextItem.title_translations, languageId);
       const category = categories.find(c => c.id === nextItem.category);
-      const categoryLabel = category ? getCategoryTranslation(category.translations, 1) : 'Мэдээ';
+      const categoryLabel = category ? getCategoryTranslation(category.translations, languageId) : tr.defaultCategory;
       const imageUrl = nextItem.image_url || nextItem.image || '/placeholder-news.jpg';
 
       return {
         id: nextItem.id,
-        title: titleMn?.label || 'Гарчиггүй',
+        title: titleTr?.label || tr.noTitle,
         slug: nextItem.slug || `news-${nextItem.id}`,
         excerpt: '',
         content: '',
@@ -326,11 +354,11 @@ export default function NewsDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Мэдээ олдсонгүй</h1>
-          <p className="text-gray-500 mb-8">Уучлаарай, хайсан мэдээ олдсонгүй.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{tr.notFound}</h1>
+          <p className="text-gray-500 mb-8">{tr.notFoundDesc}</p>
           <Link href="/news" className="inline-flex items-center gap-2 px-6 py-3 text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all duration-200 font-medium shadow-lg shadow-teal-600/20">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            Мэдээ рүү буцах
+            {tr.backToNews}
           </Link>
         </div>
       </main>
@@ -347,8 +375,8 @@ export default function NewsDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Алдаа гарлаа</h1>
-          <p className="text-gray-500 mb-8">Мэдээ ачаалахад асуудал гарав. Дахин оролдоно уу.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{tr.errorTitle}</h1>
+          <p className="text-gray-500 mb-8">{tr.errorDesc}</p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => {
@@ -358,13 +386,13 @@ export default function NewsDetailPage() {
               }}
               className="px-6 py-3 bg-teal-600 text-white font-medium rounded-xl hover:bg-teal-700 transition-all duration-200 shadow-lg shadow-teal-600/20"
             >
-              Дахин ачаалах
+              {tr.reload}
             </button>
             <Link
               href="/news"
               className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all duration-200"
             >
-              Мэдээ рүү буцах
+              {tr.backToNews}
             </Link>
           </div>
         </div>
@@ -413,11 +441,11 @@ export default function NewsDetailPage() {
               )}
               <span className="text-white/70 text-sm flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                {new Date(news.publishedAt).toLocaleDateString('mn-MN')}
+                {new Date(news.publishedAt).toLocaleDateString(isEn ? 'en-US' : 'mn-MN')}
               </span>
               <span className="text-white/70 text-sm flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                {news.readTime} мин
+                {news.readTime} {tr.min}
               </span>
             </div>
           </Container>
@@ -431,9 +459,9 @@ export default function NewsDetailPage() {
             {/* Breadcrumb */}
             <div className="px-6 md:px-10 pt-6 md:pt-8">
               <nav className="flex items-center gap-2 text-sm text-gray-400">
-                <Link href="/" className="hover:text-teal-600 transition-colors">Нүүр</Link>
+                <Link href="/" className="hover:text-teal-600 transition-colors">{tr.home}</Link>
                 <span>/</span>
-                <Link href="/news" className="hover:text-teal-600 transition-colors">Мэдээ</Link>
+                <Link href="/news" className="hover:text-teal-600 transition-colors">{tr.news}</Link>
                 <span>/</span>
                 <span className="text-gray-600 font-medium truncate max-w-[220px]">{news.title}</span>
               </nav>
@@ -495,7 +523,7 @@ export default function NewsDetailPage() {
               <div className="px-6 md:px-10 pt-6 pb-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  Нэмэлт зургууд
+                  {tr.additionalImages}
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {news.images.map((img, index) => (
@@ -527,7 +555,7 @@ export default function NewsDetailPage() {
               <div className="px-6 md:px-10 py-6 md:py-8 mt-4">
                 <div className="border-t border-b border-gray-100 py-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-500">Мэдээг хуваалцах</span>
+                    <span className="text-sm font-medium text-gray-500">{tr.shareNews}</span>
                     <div className="flex items-center gap-2">
                       {news.socials.map((s, idx) => {
                         const platform = s.icon?.toLowerCase() || ''
@@ -580,11 +608,11 @@ export default function NewsDetailPage() {
                         onClick={() => {
                           if (typeof window !== 'undefined') {
                             navigator.clipboard.writeText(window.location.href)
-                            alert('Мэдээний холбоосыг хуулсан')
+                            alert(tr.copyLink)
                           }
                         }}
                         className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gray-50 text-gray-500 hover:bg-teal-600 hover:text-white transition-all duration-300"
-                        title="Холбоос хуулах"
+                        title={tr.copyLinkTitle}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -600,7 +628,7 @@ export default function NewsDetailPage() {
           {/* Related News */}
           {relatedNews.length > 0 && (
             <section className="mt-12">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Холбоотой мэдээ</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">{tr.relatedNews}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {relatedNews.map((item) => (
                   <Link
@@ -624,7 +652,7 @@ export default function NewsDetailPage() {
                     <div className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">{item.categoryLabel}</span>
-                        <span className="text-xs text-gray-400">{new Date(item.publishedAt).toLocaleDateString('mn-MN')}</span>
+                        <span className="text-xs text-gray-400">{new Date(item.publishedAt).toLocaleDateString(isEn ? 'en-US' : 'mn-MN')}</span>
                       </div>
                       <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors leading-snug">
                         {item.title}
@@ -639,7 +667,7 @@ export default function NewsDetailPage() {
           {/* Next News */}
           {nextNews && (
             <section className="mt-10">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Дараагийн мэдээ</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{tr.nextNews}</h2>
               <Link
                 href={`/news/${nextNews.slug}`}
                 className="group flex gap-5 bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 transition-all duration-300"
@@ -660,7 +688,7 @@ export default function NewsDetailPage() {
                 <div className="py-4 pr-4 flex-1 flex flex-col justify-center">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">{nextNews.categoryLabel}</span>
-                    <span className="text-xs text-gray-400">{new Date(nextNews.publishedAt).toLocaleDateString('mn-MN')}</span>
+                    <span className="text-xs text-gray-400">{new Date(nextNews.publishedAt).toLocaleDateString(isEn ? 'en-US' : 'mn-MN')}</span>
                   </div>
                   <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors leading-snug">
                     {nextNews.title}
