@@ -111,17 +111,6 @@ function PersonCard({ image, name, subtitle, onClick, priority = false, index = 
           </div>
         )}
 
-        {/* Gradient overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-        {/* Hover action hint */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 transform scale-75 group-hover:scale-100 transition-transform duration-500">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </div>
-        </div>
       </div>
 
       {/* Info Section */}
@@ -322,7 +311,7 @@ export default function GovernanceTab() {
                         src={selectedPerson.image}
                         alt={tr?.name || ''}
                         fill
-                        className="object-cover object-top"
+                        className="object-contain object-top"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/img/avatar-placeholder.png';
                         }}

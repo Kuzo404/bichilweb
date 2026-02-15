@@ -26,6 +26,8 @@ interface SectionData {
   titleFamily: string;
   textAlign: string;
   visible: boolean;
+  image: string;
+  imagePosition: 'left' | 'right';
   blocks: SectionBlock[];
 }
 
@@ -124,6 +126,8 @@ export default function IntroTab() {
               titleFamily: getStyle(section.translations, 'fontfamily') || 'inherit',
               textAlign: getStyle(section.translations, 'textalign') || 'left',
               visible: section.visible !== false,
+              image: section.image || '',
+              imagePosition: (section.image_position || 'right') as 'left' | 'right',
               blocks: sortedBlocks.map((block: any) => ({
                 content: getMN(block.translations, 'content'),
                 color: getStyle(block.translations, 'fontcolor') || getStyle(block.translations, 'color') || '#475569',
@@ -219,7 +223,51 @@ export default function IntroTab() {
       {sections.map((section, sIdx) => {
         if (!section.visible) return null;
         const isFirst = sIdx === 0;
-        const isEvenAfterFirst = sIdx > 0 && sIdx % 2 === 0;
+        // Determine if this section has an image (per-section or global for first)
+        const sectionImage = isFirst ? (imageUrl || section.image) : section.image;
+        const hasImage = !!sectionImage;
+        const imgPos = section.imagePosition || 'right';
+
+        // Text content block
+        const TextContent = (
+          <div className="space-y-6">
+            {section.title && (
+              <h2 style={{
+                color: section.titleColor,
+                fontSize: `${section.titleSize}px`,
+                fontWeight: section.titleWeight,
+                fontFamily: section.titleFamily !== 'inherit' ? section.titleFamily : undefined,
+                textAlign: mapAlign(section.textAlign) as any,
+              }}
+              className="leading-tight">
+                {section.title}
+              </h2>
+            )}
+            <div className="space-y-4">
+              {section.blocks.map((block, bIdx) =>
+                block.visible && block.content ? (
+                  <p key={bIdx} style={{
+                    color: block.color,
+                    fontSize: `${block.fontSize}px`,
+                    fontWeight: block.fontWeight,
+                    fontFamily: block.fontFamily !== 'inherit' ? block.fontFamily : undefined,
+                    textAlign: mapAlign(block.textAlign) as any,
+                  }}
+                  className="leading-relaxed">
+                    {block.content}
+                  </p>
+                ) : null
+              )}
+            </div>
+          </div>
+        );
+
+        // Image block
+        const ImageBlock = sectionImage ? (
+          <div className="relative h-[400px] md:h-[500px] w-full rounded-2xl overflow-hidden shadow-xl">
+            <Image src={sectionImage} alt={section.title || 'Section image'} fill className="object-cover" />
+          </div>
+        ) : null;
 
         return (
           <div
@@ -229,97 +277,53 @@ export default function IntroTab() {
             className={clsx(
               'transition-all duration-700 ease-out',
               revealedSections.has(sIdx) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10',
-              // First section: 2-column layout with image
-              isFirst && 'grid grid-cols-1 md:grid-cols-2 gap-12 items-center',
-              // Subsequent pairs
-              !isFirst && sIdx <= 2 && 'bg-white p-8 rounded-2xl shadow-sm border border-gray-100',
-              !isFirst && sIdx > 2 && 'space-y-4',
+              hasImage && 'grid grid-cols-1 md:grid-cols-2 gap-12 items-center',
+              !hasImage && sIdx <= 2 && 'bg-white p-8 rounded-2xl shadow-sm border border-gray-100 space-y-4',
+              !hasImage && sIdx > 2 && 'space-y-4',
             )}
             style={{ transitionDelay: sIdx === 0 ? '0ms' : `${sIdx * 100}ms` }}
           >
-            {/* First section with image */}
-            {isFirst ? (
-              <>
-                <div className="space-y-6">
-                  {section.title && (
-                    <h2 style={{
-                      color: section.titleColor,
-                      fontSize: `${section.titleSize}px`,
-                      fontWeight: section.titleWeight,
-                      fontFamily: section.titleFamily !== 'inherit' ? section.titleFamily : undefined,
-                      textAlign: mapAlign(section.textAlign) as any,
-                    }}
-                    className="leading-tight">
-                      {section.title}
-                    </h2>
-                  )}
-                  <div className="space-y-4">
-                    {section.blocks.map((block, bIdx) =>
-                      block.visible && block.content ? (
-                        <p key={bIdx} style={{
-                          color: block.color,
-                          fontSize: `${block.fontSize}px`,
-                          fontWeight: block.fontWeight,
-                          fontFamily: block.fontFamily !== 'inherit' ? block.fontFamily : undefined,
-                          textAlign: mapAlign(block.textAlign) as any,
-                        }}
-                        className="leading-relaxed">
-                          {block.content}
-                        </p>
-                      ) : null
-                    )}
-                  </div>
-                </div>
-                {imageUrl && (
-                  <div className="relative h-[500px] md:h-[600px] w-full rounded-2xl overflow-hidden shadow-xl">
-                    <Image src={imageUrl} alt="Бидний тухай" fill className="object-cover" />
-                  </div>
-                )}
-              </>
-            ) : sIdx === 1 ? (
-              /* Second section: card style */
-              <>
-                {section.title && (
-                  <h3 className="text-2xl font-bold mb-4 flex items-center gap-3"
-                    style={{
-                      color: section.titleColor,
-                      fontSize: `${section.titleSize}px`,
-                      fontWeight: section.titleWeight,
-                      textAlign: mapAlign(section.textAlign) as any,
-                    }}>
-                    <span className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 flex-shrink-0">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </span>
-                    {section.title}
-                  </h3>
-                )}
-                {section.blocks.map((block, bIdx) =>
-                  block.visible && block.content ? (
-                    <p key={bIdx} style={{
-                      color: block.color,
-                      fontSize: `${block.fontSize}px`,
-                      fontWeight: block.fontWeight,
-                      textAlign: mapAlign(block.textAlign) as any,
-                    }}
-                    className="leading-relaxed">
-                      {block.content}
-                    </p>
-                  ) : null
-                )}
-              </>
+            {hasImage ? (
+              /* Section with image: 2-column layout */
+              imgPos === 'left' ? (
+                <>
+                  {ImageBlock}
+                  {TextContent}
+                </>
+              ) : (
+                <>
+                  {TextContent}
+                  {ImageBlock}
+                </>
+              )
             ) : (
-              /* Other sections: default layout */
+              /* Section without image */
               <>
                 {section.title && (
-                  <h3 className="text-2xl font-bold border-b-2 border-teal-500 pb-2 inline-block"
-                    style={{
-                      color: section.titleColor,
-                      fontSize: `${section.titleSize}px`,
-                      fontWeight: section.titleWeight,
-                      textAlign: mapAlign(section.textAlign) as any,
-                    }}>
-                    {section.title}
-                  </h3>
+                  sIdx <= 1 ? (
+                    <h3 className="text-2xl font-bold mb-4 flex items-center gap-3"
+                      style={{
+                        color: section.titleColor,
+                        fontSize: `${section.titleSize}px`,
+                        fontWeight: section.titleWeight,
+                        textAlign: mapAlign(section.textAlign) as any,
+                      }}>
+                      <span className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 flex-shrink-0">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </span>
+                      {section.title}
+                    </h3>
+                  ) : (
+                    <h3 className="text-2xl font-bold border-b-2 border-teal-500 pb-2 inline-block"
+                      style={{
+                        color: section.titleColor,
+                        fontSize: `${section.titleSize}px`,
+                        fontWeight: section.titleWeight,
+                        textAlign: mapAlign(section.textAlign) as any,
+                      }}>
+                      {section.title}
+                    </h3>
+                  )
                 )}
                 <div className="space-y-4">
                   {section.blocks.map((block, bIdx) =>
