@@ -48,6 +48,7 @@ interface FloatMenuItem {
 
 interface SocialLink {
   id: number
+  float_menu: number | null
   platform: string
   url: string
   hover_color: string
@@ -229,7 +230,11 @@ export default function FloatingMenu() {
       {/* ============================================================ */}
       {/* Dropdown — submenus + social links                           */}
       {/* ============================================================ */}
-      {activeMenuData && dropdownPos && ((activeMenuData.submenus?.length > 0) || socialLinks.length > 0) && (
+      {activeMenuData && dropdownPos && (() => {
+        const menuSocials = socialLinks.filter(s => s.float_menu === activeMenuData.id)
+        const hasContent = (activeMenuData.submenus?.length > 0) || menuSocials.length > 0
+        if (!hasContent) return null
+        return (
         <div
           className="fixed z-[60] transition-all duration-200 opacity-100"
           style={{
@@ -283,8 +288,8 @@ export default function FloatingMenu() {
               </Link>
             ))}
 
-            {/* Social Links — dropdown дотор */}
-            {socialLinks.length > 0 && (
+            {/* Social Links — тухайн бүлэгт хамаарах */}
+            {menuSocials.length > 0 && (
               <>
                 {activeMenuData.submenus.length > 0 && (
                   <div className="border-t border-gray-100 mt-1 mb-1" />
@@ -292,7 +297,7 @@ export default function FloatingMenu() {
                 <div className="px-3 py-2">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Social</span>
                   <div className="flex items-center gap-2 mt-1.5">
-                    {socialLinks
+                    {menuSocials
                       .sort((a, b) => a.sort_order - b.sort_order)
                       .map((social) => (
                         <a
@@ -322,38 +327,28 @@ export default function FloatingMenu() {
             )}
           </div>
         </div>
-      )}
+        )
+      })()}
 
-      {/* ============================================================ */}
-      {/* Бүлэг товчнууд — Desktop: 6, Mobile: 2 + scroll              */}
-      {/* ============================================================ */}
-      <div className="max-w-5xl mx-auto">
-        <style>{`
-          .float-menu-item { width: calc((100% - 8px) / 2); }
-          @media (min-width: 640px) {
-            .float-menu-item { width: calc((100% - 60px) / 6); }
-          }
-        `}</style>
-        <div
-          ref={scrollRef}
-          className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-2 sm:gap-3 cursor-grab active:cursor-grabbing"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-        >
+      {/* Баруун зүүн гүйлгэдэг scroll container — зөвхөн товчнууд */}
+      <div
+        ref={scrollRef}
+        className="flex justify-center overflow-x-auto scrollbar-hide cursor-grab active:cursor-grabbing"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
+        <div className="flex items-center gap-2 sm:gap-3 px-1">
           {menuData.map((menu) => (
-            <div
-              key={menu.id}
-              className="float-menu-item flex-none snap-start"
-            >
+            <div key={menu.id} className="flex-shrink-0">
               <button
                 ref={(el) => { if (el) buttonRefs.current.set(menu.id, el) }}
                 onClick={() => toggleMenu(String(menu.id))}
-                className="w-full flex items-center justify-center gap-1.5 sm:gap-2 px-2 py-2 sm:px-3 sm:py-2.5 rounded-full backdrop-blur-sm hover:opacity-90 transition-all border border-gray-200 whitespace-nowrap select-none"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full backdrop-blur-sm hover:opacity-90 transition-all border border-gray-200 whitespace-nowrap select-none"
                 style={{
                   backgroundColor: menu.bgcolor || '#ffffff',
                   color: menu.fontcolor || '#374151',
@@ -383,7 +378,7 @@ export default function FloatingMenu() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                   </svg>
                 )}
-                <span className="text-xs sm:text-sm font-medium truncate">
+                <span className="text-xs sm:text-sm font-medium">
                   {getMenuLabel(menu)}
                 </span>
                 <svg
