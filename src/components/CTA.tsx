@@ -325,47 +325,62 @@ export default function AccordionSlider() {
           </div>
         )}
 
-        {/* === MOBILE: ALL SLIDES VISIBLE === */}
+        {/* === MOBILE: HORIZONTAL ACCORDION (tap to expand) === */}
         {isMobile && (
-          <div className="grid grid-cols-2 gap-3">
-            {slidesData.map((s) => {
+          <div className="flex gap-2 h-[65vh]">
+            {slidesData.map((s, i) => {
               const title = getTranslation(s.titles)
               const subtitles = getSubtitles(s.subtitles)
               const imageUrl = getImageUrl(s)
+              const isOpen = active === i
 
               return (
                 <div
                   key={s.id}
-                  className="relative rounded-xl overflow-hidden cursor-pointer"
-                  style={{ aspectRatio: '3/4' }}
+                  className="relative overflow-hidden rounded-xl cursor-pointer"
+                  style={{
+                    flex: isOpen ? 4 : 0.6,
+                    transition: 'flex 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                    minWidth: 0,
+                  }}
                   onClick={() => {
-                    if (s.url) window.open(s.url, '_blank', 'noopener,noreferrer')
+                    if (isOpen && s.url) {
+                      window.open(s.url, '_blank', 'noopener,noreferrer')
+                    } else {
+                      setActive(i)
+                    }
                   }}
                 >
-                  {/* Background */}
+                  {/* Background image */}
                   <div
-                    className="absolute inset-0 bg-cover bg-center"
+                    className="absolute inset-0 bg-cover bg-center transition-all duration-700"
                     style={{
                       backgroundImage: imageUrl
                         ? `url('${imageUrl}')`
                         : 'linear-gradient(135deg, #0f766e, #1e3a5f)',
+                      filter: isOpen ? 'grayscale(0) brightness(1)' : 'grayscale(0.5) brightness(0.6)',
+                      transform: isOpen ? 'scale(1.02)' : 'scale(1.15)',
                     }}
                   />
-                  {/* Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
 
-                  {/* Content */}
-                  <div className="absolute inset-0 flex flex-col justify-between p-3 z-10">
-                    {/* Top: Number + Title */}
-                    <div>
-                      {s.number && s.number !== '0' && (
-                        <span className="text-[28px] font-black leading-none text-white/15 block">
-                          {s.number}
-                        </span>
-                      )}
+                  {/* Gradient overlay */}
+                  <div
+                    className="absolute inset-0 transition-opacity duration-500"
+                    style={{
+                      background: isOpen
+                        ? 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 40%, transparent 50%, rgba(0,0,0,0.85) 100%)'
+                        : 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%)',
+                    }}
+                  />
+
+                  {/* Collapsed: Vertical title */}
+                  {!isOpen && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
                       <h3
-                        className="text-sm font-bold leading-tight"
+                        className="text-sm font-bold whitespace-nowrap"
                         style={{
+                          writingMode: 'vertical-rl',
+                          textOrientation: 'mixed',
                           fontFamily: s.font || 'inherit',
                           color: s.color && s.color !== '#' ? s.color : '#fff',
                         }}
@@ -373,41 +388,78 @@ export default function AccordionSlider() {
                         {title}
                       </h3>
                     </div>
+                  )}
 
-                    {/* Bottom: Subtitles */}
-                    <div>
-                      {s.description && (
-                        <p className="text-[10px] text-white/60 leading-tight mb-1 line-clamp-2">
-                          {s.description}
-                        </p>
-                      )}
-                      {subtitles.length > 0 && (
-                        <ul className="space-y-0.5">
-                          {subtitles.slice(0, 3).map((sub) => (
-                            <li key={sub.id} className="flex items-start gap-1 text-[10px] text-white/75 leading-tight">
-                              <span className="mt-0.5 w-3 h-3 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-2 h-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </span>
-                              <span className="line-clamp-1">{sub.label}</span>
-                            </li>
-                          ))}
-                          {subtitles.length > 3 && (
-                            <li className="text-[10px] text-white/50 pl-4">+{subtitles.length - 3}</li>
-                          )}
-                        </ul>
-                      )}
-                      {s.url && (
-                        <div className="mt-1.5 flex items-center gap-1 text-[10px] text-emerald-400/70">
-                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                          <span>Дэлгэрэнгүй</span>
-                        </div>
-                      )}
+                  {/* Expanded: Full content */}
+                  {isOpen && (
+                    <div className="absolute inset-0 flex flex-col justify-between p-4 z-10">
+                      {/* Top: Number + Title */}
+                      <div>
+                        {s.number && s.number !== '0' && (
+                          <span className="text-[36px] font-black leading-none text-white/15 block">
+                            {s.number}
+                          </span>
+                        )}
+                        <h3
+                          className="text-base font-bold leading-tight"
+                          style={{
+                            fontFamily: s.font || 'inherit',
+                            color: s.color && s.color !== '#' ? s.color : '#fff',
+                          }}
+                        >
+                          {title}
+                        </h3>
+                      </div>
+
+                      {/* Bottom: Description + Subtitles */}
+                      <div>
+                        {s.description && (
+                          <p className="text-xs text-white/70 leading-relaxed mb-2">
+                            {s.description}
+                          </p>
+                        )}
+                        {subtitles.length > 0 && (
+                          <ul className="space-y-1">
+                            {subtitles.map((sub, idx) => (
+                              <li
+                                key={sub.id}
+                                className="flex items-start gap-1.5 text-xs text-white/85 leading-relaxed"
+                                style={{
+                                  transition: `opacity 0.3s ease ${idx * 0.06}s, transform 0.3s ease ${idx * 0.06}s`,
+                                  opacity: 1,
+                                  transform: 'translateX(0)',
+                                }}
+                              >
+                                <span className="mt-0.5 w-4 h-4 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-2.5 h-2.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </span>
+                                <span>{sub.label}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {s.url && (
+                          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-emerald-400/80">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            <span>Дэлгэрэнгүй</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Collapsed: index indicator */}
+                  {!isOpen && (
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+                      <span className="text-[10px] font-semibold text-white/40 tracking-widest">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )
             })}
