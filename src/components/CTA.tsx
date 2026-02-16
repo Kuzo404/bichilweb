@@ -325,9 +325,9 @@ export default function AccordionSlider() {
           </div>
         )}
 
-        {/* === MOBILE: HORIZONTAL ACCORDION (tap to expand) === */}
+        {/* === MOBILE: VERTICAL ACCORDION (tap to expand down) === */}
         {isMobile && (
-          <div className="flex gap-2 h-[65vh]">
+          <div className="flex flex-col gap-2">
             {slidesData.map((s, i) => {
               const title = getTranslation(s.titles)
               const subtitles = getSubtitles(s.subtitles)
@@ -339,9 +339,8 @@ export default function AccordionSlider() {
                   key={s.id}
                   className="relative overflow-hidden rounded-xl cursor-pointer"
                   style={{
-                    flex: isOpen ? 4 : 0.6,
-                    transition: 'flex 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                    minWidth: 0,
+                    height: isOpen ? '55vh' : '48px',
+                    transition: 'height 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                   onClick={() => {
                     if (isOpen && s.url) {
@@ -358,8 +357,8 @@ export default function AccordionSlider() {
                       backgroundImage: imageUrl
                         ? `url('${imageUrl}')`
                         : 'linear-gradient(135deg, #0f766e, #1e3a5f)',
-                      filter: isOpen ? 'grayscale(0) brightness(1)' : 'grayscale(0.5) brightness(0.6)',
-                      transform: isOpen ? 'scale(1.02)' : 'scale(1.15)',
+                      filter: isOpen ? 'grayscale(0) brightness(1)' : 'grayscale(0.4) brightness(0.5)',
+                      transform: isOpen ? 'scale(1.02)' : 'scale(1.1)',
                     }}
                   />
 
@@ -369,24 +368,28 @@ export default function AccordionSlider() {
                     style={{
                       background: isOpen
                         ? 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 40%, transparent 50%, rgba(0,0,0,0.85) 100%)'
-                        : 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%)',
+                        : 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%)',
                     }}
                   />
 
-                  {/* Collapsed: Vertical title */}
+                  {/* Collapsed: Horizontal title bar */}
                   {!isOpen && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="absolute inset-0 flex items-center px-4 z-10">
+                      <span className="text-xs font-semibold text-white/40 mr-3 tracking-wider">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
                       <h3
-                        className="text-sm font-bold whitespace-nowrap"
+                        className="text-sm font-bold truncate"
                         style={{
-                          writingMode: 'vertical-rl',
-                          textOrientation: 'mixed',
                           fontFamily: s.font || 'inherit',
                           color: s.color && s.color !== '#' ? s.color : '#fff',
                         }}
                       >
                         {title}
                       </h3>
+                      <svg className="w-4 h-4 text-white/40 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </div>
                   )}
 
@@ -449,15 +452,6 @@ export default function AccordionSlider() {
                           </div>
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {/* Collapsed: index indicator */}
-                  {!isOpen && (
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
-                      <span className="text-[10px] font-semibold text-white/40 tracking-widest">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
                     </div>
                   )}
                 </div>
