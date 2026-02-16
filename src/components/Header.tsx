@@ -238,12 +238,14 @@ export default function Header() {
 
   // categories эхэнд → services → бусад статик цэснүүд
   // Admin-аас удирдсан цэс байвал ашиглана, байхгүй бол динамик цэс
-  const menuItems: MenuItem[] = adminHeaderMenu.length > 0 
+  const hrMenuItem: MenuItem = { title_mn: 'Хүний нөөц', title_en: 'Careers', href: '/about/hr' }
+  const baseMenuItems: MenuItem[] = adminHeaderMenu.length > 0 
     ? adminHeaderMenu 
     : [
         ...categoryMenuItems,
         ...getStaticMenuItems(serviceItems, dynamicPages),
       ]
+  const menuItems: MenuItem[] = [...baseMenuItems, hrMenuItem]
 
   // ── Scroll ────────────────────────────────────────────────────────────────
 
