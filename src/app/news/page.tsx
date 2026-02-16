@@ -82,6 +82,10 @@ const getCategoryTranslation = (translations: CategoryTranslation[], languageId:
   return translations.find(t => t.language === languageId)
 }
 
+const stripHtml = (html: string): string => {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+}
+
 const mapAPICategoryToCategory = (apiCategory: CategoryAPI, languageId: number): Category => {
   const translation = getCategoryTranslation(apiCategory.translations, languageId)
   
@@ -99,9 +103,9 @@ const mapApiNewsToFrontend = (item: ApiNewsItem, languageId: number): NewsItem =
 
   return {
     id: item.id,
-    title: titleTranslation?.label || 'Гарчиггүй',
+    title: stripHtml(titleTranslation?.label || 'Гарчиггүй'),
     slug: item.slug || `news-${item.id}`,
-    excerpt: excerptTranslation?.label || '',
+    excerpt: stripHtml(excerptTranslation?.label || ''),
     bannerImage: imageUrl,
     category: item.category,
     publishedAt: item.date,

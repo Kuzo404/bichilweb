@@ -84,6 +84,10 @@ const getCategoryTranslation = (translations: CategoryTranslation[], language: n
   return translation?.label || 'Мэдээ'
 }
 
+const stripHtml = (html: string): string => {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+}
+
 const renderSocialPlatformIcon = (platform: string) => {
   const p = platform.toLowerCase()
   if (p === 'facebook') return (
@@ -463,19 +467,21 @@ export default function NewsDetailPage() {
                 <span>/</span>
                 <Link href="/news" className="hover:text-teal-600 transition-colors">{tr.news}</Link>
                 <span>/</span>
-                <span className="text-gray-600 font-medium truncate max-w-[220px]">{news.title}</span>
+                <span className="text-gray-600 font-medium truncate max-w-[220px]">{stripHtml(news.title)}</span>
               </nav>
             </div>
 
             {/* Title & Excerpt */}
             <div className="px-6 md:px-10 pt-4 md:pt-5">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
-                {news.title}
-              </h1>
+              <h1 
+                className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4"
+                dangerouslySetInnerHTML={{ __html: news.title }}
+              />
               {news.excerpt && (
-                <p className="text-base md:text-lg text-gray-500 leading-relaxed">
-                  {news.excerpt}
-                </p>
+                <div 
+                  className="text-base md:text-lg text-gray-500 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: news.excerpt }}
+                />
               )}
             </div>
 
@@ -485,9 +491,10 @@ export default function NewsDetailPage() {
             {/* Content */}
             {news.content && (
               <div className="px-6 md:px-10 pb-2">
-                <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap leading-[1.85] text-[15px] md:text-base">
-                  {news.content}
-                </div>
+                <div 
+                  className="prose prose-lg max-w-none text-gray-700 leading-[1.85] text-[15px] md:text-base"
+                  dangerouslySetInnerHTML={{ __html: news.content }}
+                />
               </div>
             )}
 
@@ -528,13 +535,14 @@ export default function NewsDetailPage() {
                     <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                     {tr.video}
                   </h3>
-                  <div className="relative w-full rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+                  <div className="relative w-full rounded-xl overflow-hidden bg-black flex items-center justify-center" style={{ maxHeight: '80vh' }}>
                     <iframe
                       src={embedUrl}
                       title="Video"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-xl"
+                      className="w-full rounded-xl"
+                      style={{ aspectRatio: '16/9', maxHeight: '80vh' }}
                     />
                   </div>
                 </div>
@@ -599,8 +607,24 @@ export default function NewsDetailPage() {
                           if (platform === 'telegram') {
                             return `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(newsTitle)}`
                           }
-                          // For instagram, youtube, tiktok, custom etc. - link to the page
-                          return s.social
+                          if (platform === 'instagram') {
+                            return s.social || `https://www.instagram.com/`
+                          }
+                          if (platform === 'youtube') {
+                            return s.social || `https://www.youtube.com/`
+                          }
+                          if (platform === 'tiktok') {
+                            return s.social || `https://www.tiktok.com/`
+                          }
+                          return s.social || pageUrl
+                        }
+
+                        const isShareable = ['facebook', 'twitter', 'x', 'linkedin', 'telegram'].includes(platform)
+                        const handleClick = (e: React.MouseEvent) => {
+                          if (isShareable) {
+                            e.preventDefault()
+                            window.open(getShareUrl(), '_blank', 'width=600,height=600,scrollbars=yes')
+                          }
                         }
 
                         const hoverColors: Record<string, string> = {
@@ -620,8 +644,9 @@ export default function NewsDetailPage() {
                             href={getShareUrl()}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={handleClick}
                             className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-gray-50 text-gray-500 transition-all duration-300 ${hoverColors[platform] || 'hover:bg-teal-600 hover:text-white'}`}
-                            title={`${s.icon} дээр хуваалцах`}
+                            title={`${s.icon} ${isShareable ? (isEn ? 'Share' : 'Хуваалцах') : ''}`}
                           >
                             {renderSocialPlatformIcon(s.icon)}
                           </a>
@@ -678,7 +703,7 @@ export default function NewsDetailPage() {
                         <span className="text-xs text-gray-400">{new Date(item.publishedAt).toLocaleDateString(isEn ? 'en-US' : 'mn-MN')}</span>
                       </div>
                       <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors leading-snug">
-                        {item.title}
+                        {stripHtml(item.title)}
                       </h3>
                     </div>
                   </Link>
@@ -698,7 +723,7 @@ export default function NewsDetailPage() {
                 <div className="relative w-36 sm:w-44 flex-shrink-0 overflow-hidden bg-gray-100">
                   <Image
                     src={nextNews.bannerImage}
-                    alt={nextNews.title}
+                    alt={stripHtml(nextNews.title)}
                     fill
                     unoptimized
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -714,7 +739,7 @@ export default function NewsDetailPage() {
                     <span className="text-xs text-gray-400">{new Date(nextNews.publishedAt).toLocaleDateString(isEn ? 'en-US' : 'mn-MN')}</span>
                   </div>
                   <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors leading-snug">
-                    {nextNews.title}
+                    {stripHtml(nextNews.title)}
                   </h3>
                 </div>
                 <div className="flex items-center pr-5 text-teal-500 group-hover:translate-x-1 transition-transform">
