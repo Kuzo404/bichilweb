@@ -40,7 +40,13 @@ export async function generateMetadata(
 
     const title = stripHtml(titleMn?.label || titleEn?.label || 'News')
     const description = stripHtml(excerptMn?.label || excerptEn?.label || '')
-    const imageUrl = item.image_url || item.image || ''
+    let imageUrl = item.image_url || item.image || ''
+    
+    // Ensure absolute URL for OG image
+    if (imageUrl && !imageUrl.startsWith('http')) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bichilglobus.mn'
+      imageUrl = `${siteUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`
+    }
 
     return {
       title,

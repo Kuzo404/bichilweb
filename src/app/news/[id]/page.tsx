@@ -35,6 +35,7 @@ interface ApiNewsItem {
   image: string 
   image_url?: string
   video: string
+  video_orientation?: string
   feature: boolean
   render: boolean
   readtime: number
@@ -73,6 +74,7 @@ interface NewsItem {
   images: string[]
   socials: { social: string; icon: string }[]
   video: string
+  videoOrientation: string
 }
 
 const getTranslation = (translations: ApiTranslation[], language: number): ApiTranslation | undefined => {
@@ -229,6 +231,7 @@ export default function NewsDetailPage() {
         images: foundNews.images?.map(img => img.image) || [],
         socials: foundNews.socials?.map(s => ({ social: s.social, icon: s.icon })) || [],
         video: foundNews.video || '',
+        videoOrientation: foundNews.video_orientation || 'horizontal',
       };
 
       setNews(mappedNews);
@@ -272,6 +275,7 @@ export default function NewsDetailPage() {
           images: [],
           socials: [],
           video: item.video || '',
+          videoOrientation: item.video_orientation || 'horizontal',
         };
       });
   };
@@ -310,6 +314,7 @@ export default function NewsDetailPage() {
         images: [],
         socials: [],
         video: nextItem.video || '',
+        videoOrientation: nextItem.video_orientation || 'horizontal',
       };
     }
     
@@ -529,20 +534,21 @@ export default function NewsDetailPage() {
               }
               const embedUrl = getEmbedUrl(news.video)
               if (!embedUrl) return null
+              const isVertical = news.videoOrientation === 'vertical'
               return (
                 <div className="px-6 md:px-10 pt-6 pb-2">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                     {tr.video}
                   </h3>
-                  <div className="relative w-full rounded-xl overflow-hidden bg-black flex items-center justify-center" style={{ maxHeight: '80vh' }}>
+                  <div className={`relative rounded-xl overflow-hidden bg-black flex items-center justify-center ${isVertical ? 'max-w-[400px] mx-auto' : 'w-full'}`} style={{ maxHeight: '80vh' }}>
                     <iframe
                       src={embedUrl}
                       title="Video"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="w-full rounded-xl"
-                      style={{ aspectRatio: '16/9', maxHeight: '80vh' }}
+                      style={{ aspectRatio: isVertical ? '9/16' : '16/9', maxHeight: '80vh' }}
                     />
                   </div>
                 </div>
