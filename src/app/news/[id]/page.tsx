@@ -131,6 +131,7 @@ export default function NewsDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const tr = {
     featured: isEn ? 'Featured' : 'Онцлох',
@@ -541,16 +542,30 @@ export default function NewsDetailPage() {
                     <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
                     {tr.video}
                   </h3>
-                  <div className={`relative rounded-xl overflow-hidden bg-black flex items-center justify-center ${isVertical ? 'max-w-[400px] mx-auto' : 'w-full'}`} style={{ maxHeight: '80vh' }}>
-                    <iframe
-                      src={embedUrl}
-                      title="Video"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="w-full rounded-xl"
-                      style={{ aspectRatio: isVertical ? '9/16' : '16/9', maxHeight: '80vh' }}
-                    />
-                  </div>
+                  {isVertical ? (
+                    <div className="flex justify-center">
+                      <div className="relative rounded-2xl overflow-hidden bg-black shadow-lg" style={{ width: '100%', maxWidth: '360px', height: '640px' }}>
+                        <iframe
+                          src={embedUrl}
+                          title="Video"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="absolute inset-0 w-full h-full rounded-2xl"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative w-full rounded-xl overflow-hidden bg-black flex items-center justify-center" style={{ maxHeight: '80vh' }}>
+                      <iframe
+                        src={embedUrl}
+                        title="Video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full rounded-xl"
+                        style={{ aspectRatio: '16/9', maxHeight: '80vh' }}
+                      />
+                    </div>
+                  )}
                 </div>
               )
             })()}
@@ -588,95 +603,110 @@ export default function NewsDetailPage() {
             )}
 
             {/* Social Share & Links */}
-            {news.socials && news.socials.length > 0 && (
-              <div className="px-6 md:px-10 py-6 md:py-8 mt-4">
-                <div className="border-t border-b border-gray-100 py-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-500">{tr.shareNews}</span>
-                    <div className="flex items-center gap-2">
-                      {news.socials.map((s, idx) => {
-                        const platform = s.icon?.toLowerCase() || ''
-                        const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
-                        const newsTitle = news.title
+            <div className="px-6 md:px-10 py-6 md:py-8 mt-4">
+              <div className="border-t border-b border-gray-100 py-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-500">{tr.shareNews}</span>
+                  <div className="flex items-center gap-2">
+                    {news.socials && news.socials.length > 0 && news.socials.map((s, idx) => {
+                      const platform = s.icon?.toLowerCase() || ''
+                      const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
+                      const newsTitle = news.title
 
-                        // Build share URL based on platform
-                        const getShareUrl = (): string => {
-                          if (platform === 'facebook') {
-                            return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`
-                          }
-                          if (platform === 'twitter' || platform === 'x') {
-                            return `https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(newsTitle)}`
-                          }
-                          if (platform === 'linkedin') {
-                            return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`
-                          }
-                          if (platform === 'telegram') {
-                            return `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(newsTitle)}`
-                          }
-                          if (platform === 'instagram') {
-                            return s.social || `https://www.instagram.com/`
-                          }
-                          if (platform === 'youtube') {
-                            return s.social || `https://www.youtube.com/`
-                          }
-                          if (platform === 'tiktok') {
-                            return s.social || `https://www.tiktok.com/`
-                          }
-                          return s.social || pageUrl
+                      // Build share URL based on platform
+                      const getShareUrl = (): string => {
+                        if (platform === 'facebook') {
+                          return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`
                         }
-
-                        const isShareable = ['facebook', 'twitter', 'x', 'linkedin', 'telegram'].includes(platform)
-                        const handleClick = (e: React.MouseEvent) => {
-                          if (isShareable) {
-                            e.preventDefault()
-                            window.open(getShareUrl(), '_blank', 'width=600,height=600,scrollbars=yes')
-                          }
+                        if (platform === 'twitter' || platform === 'x') {
+                          return `https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(newsTitle)}`
                         }
-
-                        const hoverColors: Record<string, string> = {
-                          facebook: 'hover:bg-[#1877F2] hover:text-white',
-                          twitter: 'hover:bg-gray-900 hover:text-white',
-                          x: 'hover:bg-gray-900 hover:text-white',
-                          linkedin: 'hover:bg-[#0A66C2] hover:text-white',
-                          telegram: 'hover:bg-[#0088cc] hover:text-white',
-                          instagram: 'hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#e6683c] hover:to-[#dc2743] hover:text-white',
-                          youtube: 'hover:bg-[#FF0000] hover:text-white',
-                          tiktok: 'hover:bg-gray-900 hover:text-white',
+                        if (platform === 'linkedin') {
+                          return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`
                         }
+                        if (platform === 'telegram') {
+                          return `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(newsTitle)}`
+                        }
+                        if (platform === 'instagram') {
+                          return s.social || `https://www.instagram.com/`
+                        }
+                        if (platform === 'youtube') {
+                          return s.social || `https://www.youtube.com/`
+                        }
+                        if (platform === 'tiktok') {
+                          return s.social || `https://www.tiktok.com/`
+                        }
+                        return s.social || pageUrl
+                      }
 
-                        return (
-                          <a
-                            key={idx}
-                            href={getShareUrl()}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={handleClick}
-                            className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-gray-50 text-gray-500 transition-all duration-300 ${hoverColors[platform] || 'hover:bg-teal-600 hover:text-white'}`}
-                            title={`${s.icon} ${isShareable ? (isEn ? 'Share' : 'Хуваалцах') : ''}`}
-                          >
-                            {renderSocialPlatformIcon(s.icon)}
-                          </a>
-                        )
-                      })}
-                      <button
-                        onClick={() => {
-                          if (typeof window !== 'undefined') {
-                            navigator.clipboard.writeText(window.location.href)
-                            alert(tr.copyLink)
-                          }
-                        }}
-                        className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gray-50 text-gray-500 hover:bg-teal-600 hover:text-white transition-all duration-300"
-                        title={tr.copyLinkTitle}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                    </div>
+                      const isShareable = ['facebook', 'twitter', 'x', 'linkedin', 'telegram'].includes(platform)
+                      const handleClick = (e: React.MouseEvent) => {
+                        if (isShareable) {
+                          e.preventDefault()
+                          window.open(getShareUrl(), '_blank', 'width=600,height=600,scrollbars=yes')
+                        }
+                      }
+
+                      const hoverColors: Record<string, string> = {
+                        facebook: 'hover:bg-[#1877F2] hover:text-white',
+                        twitter: 'hover:bg-gray-900 hover:text-white',
+                        x: 'hover:bg-gray-900 hover:text-white',
+                        linkedin: 'hover:bg-[#0A66C2] hover:text-white',
+                        telegram: 'hover:bg-[#0088cc] hover:text-white',
+                        instagram: 'hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#e6683c] hover:to-[#dc2743] hover:text-white',
+                        youtube: 'hover:bg-[#FF0000] hover:text-white',
+                        tiktok: 'hover:bg-gray-900 hover:text-white',
+                      }
+
+                      return (
+                        <a
+                          key={idx}
+                          href={getShareUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={handleClick}
+                          className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-gray-50 text-gray-500 transition-all duration-300 ${hoverColors[platform] || 'hover:bg-teal-600 hover:text-white'}`}
+                          title={`${s.icon} ${isShareable ? (isEn ? 'Share' : 'Хуваалцах') : ''}`}
+                        >
+                          {renderSocialPlatformIcon(s.icon)}
+                        </a>
+                      )
+                    })}
+                    <button
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          navigator.clipboard.writeText(window.location.href)
+                          setCopied(true)
+                          setTimeout(() => setCopied(false), 2000)
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all duration-300 ${
+                        copied
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-gray-50 text-gray-500 hover:bg-teal-600 hover:text-white'
+                      }`}
+                      title={tr.copyLinkTitle}
+                    >
+                      {copied ? (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          {tr.copyLink}
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          {tr.copyLinkTitle}
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </article>
 
           {/* Related News */}

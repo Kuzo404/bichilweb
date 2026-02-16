@@ -369,26 +369,43 @@ function NewsPageContent() {
         {/* Category Tabs and Sort */}
         <div className="flex flex-col gap-4 mb-10 sm:mb-16">
           {/* Category Tabs and Sort Controls - Sticky */}
-          <div className={`sticky top-0 z-40 bg-white -mx-5 sm:-mx-20 px-5 sm:px-20 pt-3 pb-3 transition-shadow duration-300 ${stickyBarShadow ? 'shadow-md border-b border-gray-100' : 'border-b border-gray-200'}`}>
+          <div className={`sticky top-0 z-40 bg-white -mx-5 sm:-mx-20 px-5 sm:px-20 transition-shadow duration-300 ${stickyBarShadow ? 'shadow-md' : ''}`}>
             <div className="lg:max-w-[1280px] lg:mx-auto">
               <div className="flex gap-3 items-center justify-between">
-                {/* Category Tabs - horizontal scroll on mobile */}
+                {/* Category Tabs - modern underline style */}
                 <div className="flex-1 overflow-hidden">
-                  <div className="flex gap-2 items-center overflow-x-auto scrollbar-hide pb-1 -mb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => handleCategoryChange(cat.id)}
-                        aria-pressed={activeCategory === cat.id}
-                        className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-teal-500/40 ${
-                          activeCategory === cat.id
-                            ? "bg-teal-600 text-white shadow-sm"
-                            : "bg-gray-100 text-gray-600 hover:text-teal-700 hover:bg-teal-50"
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
+                  <div className="flex gap-1 items-center overflow-x-auto scrollbar-hide border-b border-gray-200" style={{ WebkitOverflowScrolling: 'touch' }}>
+                    {categories.map((cat) => {
+                      const count = cat.id === 0 
+                        ? news.length 
+                        : news.filter(n => n.category === cat.id).length
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => handleCategoryChange(cat.id)}
+                          aria-pressed={activeCategory === cat.id}
+                          className={`relative px-4 py-3 text-[13px] font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 focus:outline-none ${
+                            activeCategory === cat.id
+                              ? "text-teal-600"
+                              : "text-gray-500 hover:text-gray-800"
+                          }`}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            {cat.label}
+                            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-semibold ${
+                              activeCategory === cat.id
+                                ? 'bg-teal-50 text-teal-600'
+                                : 'bg-gray-100 text-gray-400'
+                            }`}>
+                              {count}
+                            </span>
+                          </span>
+                          {activeCategory === cat.id && (
+                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600 rounded-t-full" />
+                          )}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
 
