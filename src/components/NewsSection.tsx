@@ -71,6 +71,33 @@ interface Category {
   label: string
 }
 
+interface NewsStyles {
+  sectionLabelColor: string
+  sectionLabelSize: string
+  headingColor: string
+  headingSize: string
+  dividerColor: string
+  buttonColor: string
+  buttonTextColor: string
+  buttonSize: string
+}
+
+const defaultStyles: NewsStyles = {
+  sectionLabelColor: '#0d9488',
+  sectionLabelSize: '14px',
+  headingColor: '#111827',
+  headingSize: '48px',
+  dividerColor: '#0d9488',
+  buttonColor: '#0d9488',
+  buttonTextColor: '#ffffff',
+  buttonSize: '16px',
+}
+
+const stripHtml = (html: string): string => {
+  if (!html) return ''
+  return html.replace(/<[^>]*>/g, '').trim()
+}
+
 const getTranslation = (translations: ApiTranslation[], language: number): ApiTranslation | undefined => {
   return translations.find(t => t.language === language)
 }
@@ -93,7 +120,7 @@ const mapApiNewsToFrontend = (item: ApiNewsItem, languageId: number): NewsItem =
 
   return {
     id: item.id,
-    title: titleTranslation?.label || '',
+    title: stripHtml(titleTranslation?.label || ''),
     slug: item.slug || `news-${item.id}`,
     bannerImage: imageUrl,
     category: item.category,
@@ -111,6 +138,7 @@ export default function NewsSection() {
   const [categories, setCategories] = useState<Category[]>([])
   const [rawCategories, setRawCategories] = useState<CategoryAPI[]>([])
   const [loading, setLoading] = useState(true)
+  const [styles, setStyles] = useState<NewsStyles>(defaultStyles)
 
   const languageId = language === 'mn' ? 1 : 2
 
@@ -129,6 +157,7 @@ export default function NewsSection() {
   useEffect(() => {
     fetchCategories()
     fetchNews()
+    fetchPageSettings()
   }, [])
 
   // Re-map when language changes
@@ -179,6 +208,26 @@ export default function NewsSection() {
     }
   }
 
+  const fetchPageSettings = async () => {
+    try {
+      const response = await axiosInstance.get('/news-page-settings/')
+      if (response.data) {
+        setStyles({
+          sectionLabelColor: response.data.section_label_color || '#0d9488',
+          sectionLabelSize: response.data.section_label_size || '14px',
+          headingColor: response.data.heading_color || '#111827',
+          headingSize: response.data.heading_size || '48px',
+          dividerColor: response.data.divider_color || '#0d9488',
+          buttonColor: response.data.button_color || '#0d9488',
+          buttonTextColor: response.data.button_text_color || '#ffffff',
+          buttonSize: response.data.button_size || '16px',
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch page settings:', error)
+    }
+  }
+
   // Sort: pinned first, then by date
   const sortedNews = [...news].sort((a, b) => {
     if (a.isPinnedNews === b.isPinnedNews) {
@@ -202,9 +251,9 @@ export default function NewsSection() {
         {/* Header */}
         <div className="text-center mb-12 lg:mb-20">
           <div className="inline-block">
-            <p className="text-teal-600 text-sm font-semibold uppercase tracking-wider mb-2">{trans.sectionLabel}</p>
-            <h2 className="text-4xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3">{trans.sectionTitle}</h2>
-            <div className="w-16 h-1 bg-teal-600 mx-auto rounded-full"></div>
+            <p className="font-semibold uppercase tracking-wider mb-2" style={{ color: styles.sectionLabelColor, fontSize: styles.sectionLabelSize }}>{trans.sectionLabel}</p>
+            <h2 className="font-bold mb-3" style={{ color: styles.headingColor, fontSize: styles.headingSize }}>{trans.sectionTitle}</h2>
+            <div className="w-16 h-1 mx-auto rounded-full" style={{ backgroundColor: styles.dividerColor }}></div>
           </div>
         </div>
 
@@ -315,7 +364,8 @@ export default function NewsSection() {
             <div className="flex justify-center mt-6">
               <Link
                 href="/news"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 text-white font-semibold rounded-full hover:bg-teal-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-2 px-8 py-3 font-semibold rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:opacity-90"
+                style={{ backgroundColor: styles.buttonColor, color: styles.buttonTextColor, fontSize: styles.buttonSize }}
               >
                 {trans.viewAll}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,7 +387,8 @@ export default function NewsSection() {
             <p className="text-gray-500 mb-6">{trans.noNewsDesc}</p>
             <Link
               href="/news"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 text-white font-semibold rounded-full hover:bg-teal-700 transition-all duration-300 shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-8 py-3 font-semibold rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:opacity-90"
+              style={{ backgroundColor: styles.buttonColor, color: styles.buttonTextColor, fontSize: styles.buttonSize }}
             >
               {trans.viewAllNews}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
