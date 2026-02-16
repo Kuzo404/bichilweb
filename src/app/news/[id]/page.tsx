@@ -36,6 +36,7 @@ interface ApiNewsItem {
   image_url?: string
   video: string
   video_orientation?: string
+  facebook_url?: string
   feature: boolean
   render: boolean
   readtime: number
@@ -75,6 +76,7 @@ interface NewsItem {
   socials: { social: string; icon: string }[]
   video: string
   videoOrientation: string
+  facebookUrl: string
 }
 
 const getTranslation = (translations: ApiTranslation[], language: number): ApiTranslation | undefined => {
@@ -233,6 +235,7 @@ export default function NewsDetailPage() {
         socials: foundNews.socials?.map(s => ({ social: s.social, icon: s.icon })) || [],
         video: foundNews.video || '',
         videoOrientation: foundNews.video_orientation || 'horizontal',
+        facebookUrl: foundNews.facebook_url || '',
       };
 
       setNews(mappedNews);
@@ -277,6 +280,7 @@ export default function NewsDetailPage() {
           socials: [],
           video: item.video || '',
           videoOrientation: item.video_orientation || 'horizontal',
+          facebookUrl: item.facebook_url || '',
         };
       });
   };
@@ -316,6 +320,7 @@ export default function NewsDetailPage() {
         socials: [],
         video: nextItem.video || '',
         videoOrientation: nextItem.video_orientation || 'horizontal',
+        facebookUrl: nextItem.facebook_url || '',
       };
     }
     
@@ -566,6 +571,33 @@ export default function NewsDetailPage() {
                       />
                     </div>
                   )}
+                </div>
+              )
+            })()}
+
+            {/* Facebook Post Embed */}
+            {news.facebookUrl && (() => {
+              const fbUrl = news.facebookUrl
+              const encodedUrl = encodeURIComponent(fbUrl)
+              const embedSrc = `https://www.facebook.com/plugins/post.php?href=${encodedUrl}&show_text=true&width=500&appId`
+              return (
+                <div className="px-6 md:px-10 pt-6 pb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+                    Facebook
+                  </h3>
+                  <div className="flex justify-center">
+                    <iframe
+                      src={embedSrc}
+                      width="500"
+                      height="680"
+                      style={{ border: 'none', overflow: 'hidden', maxWidth: '100%' }}
+                      scrolling="no"
+                      frameBorder="0"
+                      allowFullScreen
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    />
+                  </div>
                 </div>
               )
             })()}
