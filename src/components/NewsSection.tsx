@@ -147,9 +147,6 @@ export default function NewsSection() {
     sectionTitle: t('Мэдээ', 'News'),
     readTime: t('минут унших', 'min read'),
     viewAll: t('Дэлгэрэнгүй', 'View All'),
-    noNews: t('Нүүр хуудсанд харуулах мэдээ байхгүй байна', 'No news to display on homepage'),
-    noNewsDesc: t('Админ дотор мэдээг "Нүүр хуудсанд харуулах" гэж тэмдэглэнэ үү.', 'Mark news as "Show on Homepage" in admin panel.'),
-    viewAllNews: t('Бүх мэдээг үзэх', 'View all news'),
     newsLabel: t('Мэдээ', 'News'),
     latestNews: t('Сүүлийн мэдээнүүд', 'Latest News'),
   }
@@ -244,6 +241,9 @@ export default function NewsSection() {
   const getCategoryLabel = (categoryId: number): string => {
     return categories.find(c => c.id === categoryId)?.label || trans.newsLabel
   }
+
+  // Мэдээ байхгүй бол хэсгийг бүрэн нуух
+  if (!loading && sortedNews.length === 0) return null
 
   return (
     <section className="py-16 sm:py-20 lg:py-32 px-5 sm:px-20 flex flex-col">
@@ -374,28 +374,6 @@ export default function NewsSection() {
               </Link>
             </div>
           </>
-        )}
-
-        {!loading && sortedNews.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">{trans.noNews}</h3>
-            <p className="text-gray-500 mb-6">{trans.noNewsDesc}</p>
-            <Link
-              href="/news"
-              className="inline-flex items-center gap-2 px-8 py-3 font-semibold rounded-full transition-all duration-300 shadow-md hover:shadow-lg hover:opacity-90"
-              style={{ backgroundColor: styles.buttonColor, color: styles.buttonTextColor, fontSize: styles.buttonSize }}
-            >
-              {trans.viewAllNews}
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
         )}
       </div>
     </section>
