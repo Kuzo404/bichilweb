@@ -1,6 +1,8 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ---------------- TYPES ----------------
 type Translation = {
@@ -27,10 +29,10 @@ type Category = {
 export default function ProductDropDown() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-  const router = useRouter();
+  const { language } = useLanguage();
 
-  // locale -> language id
-  const currentLanguage = router.locale === 'mn' ? 2 : 1;
+  // locale -> language id (LanguageContext-с авна)
+  const currentLanguage = language === 'en' ? 2 : 1;
 
   useEffect(() => {
     const fetchCategories = async () => {
