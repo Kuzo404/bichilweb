@@ -122,47 +122,50 @@ export default function Header() {
     const fetchCategories = async () => {
       try {
         const res = await axiosInstance.get<ApiCategory[]>('/categories/')
-        if (res.status !== 200) return
+        if (res.status !== 200 || !Array.isArray(res.data)) {
+          console.error('Invalid response format:', res.data);
+          return;
+        }
 
         const items: MenuItem[] = res.data.map((category) => {
-          const subMenus: Record<string, SubMenuItem[]> = {}
+          const subMenus: Record<string, SubMenuItem[]> = {};
 
-          const typeItems: SubMenuItem[] = category.product_types.map((pt) => {
-            const labelMn = getTrans(pt.translations, 2)
-            const labelEn = getTrans(pt.translations, 1)
+          const typeItems: SubMenuItem[] = Array.isArray(category.product_types) ? category.product_types.map((pt) => {
+            const labelMn = getTrans(pt.translations, 2);
+            const labelEn = getTrans(pt.translations, 1);
 
-            if (pt.products.length > 0) {
+            if (Array.isArray(pt.products) && pt.products.length > 0) {
               const productLinks: SubMenuItem[] = pt.products.map((p) => ({
                 title_mn: getTrans(p.translations, 2),
                 title_en: getTrans(p.translations, 1),
                 href:     `/products/${p.id}`,
-              }))
-              subMenus[labelMn] = productLinks
-              subMenus[labelEn] = productLinks
+              }));
+              subMenus[labelMn] = productLinks;
+              subMenus[labelEn] = productLinks;
             }
 
             return {
               title_mn: labelMn,
               title_en: labelEn,
-              href: pt.products.length === 0 ? `/products/type/${pt.id}` : '#',
-            }
-          })
+              href: pt.products && pt.products.length === 0 ? `/products/type/${pt.id}` : '#',
+            };
+          }) : [];
 
           return {
             title_mn: getTrans(category.translations, 2),
             title_en: getTrans(category.translations, 1),
             items:    typeItems,
             subMenus,
-          }
-        })
+          };
+        });
 
-        setCategoryMenuItems(items)
+        setCategoryMenuItems(items);
       } catch (err) {
-        console.error('Error fetching categories:', err)
+        console.error('Failed to fetch categories:', err);
       }
-    }
+    };
 
-    fetchCategories()
+    fetchCategories();
   }, [])
 
   // ── Өгөгдлийн сангаас header цэс татах (Django backend) ──────────────────
@@ -245,6 +248,14 @@ export default function Header() {
         ...getStaticMenuItems(serviceItems, dynamicPages),
       ]
 
+  // DB-д өгөгдөл байхгүй үед default menu харуулахгүй, хоосон байна
+  const shouldRenderMenu = menuItems.length > 0 && menuItems.some(item => {
+    // Хэрвээ бүх item нь хоосон бол render хийхгүй
+    if (item.items && item.items.length > 0) return true
+    if (item.href) return true
+    return false
+  })
+
   // ── Scroll ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -271,324 +282,12 @@ export default function Header() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
+  if (!shouldRenderMenu) return null
+
   return (
     <>
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[99999]" style={{ maxWidth: adminHeaderStyle?.maxWidth || '1240px' }}>
-        <header
-          className={`w-full rounded-2xl transition-all duration-300 border ${
-            scrolled
-              ? 'bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-white/50'
-              : 'bg-white/70 backdrop-blur-lg shadow-[0_4px_24px_rgba(0,0,0,0.08)] border-white/40'
-          }`}
-        >
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-14 lg:h-16">
-
-              {/* Logo + Desktop Nav */}
-              <div className="flex items-center gap-6 lg:gap-8">
-                <Link href="/" className="flex items-center">
-                  <div className="flex items-center justify-center" style={{ width: `${adminHeaderStyle?.logoSize || 44}px`, height: `${adminHeaderStyle?.logoSize || 44}px` }}>
-                    {/* Лого: өгөгдлийн сангаас татсан URL ашиглана, байхгүй бол анхдагч зураг */}
-                    {adminHeaderStyle?.logoUrl && adminHeaderStyle.logoUrl !== '' ? (
-                      <Image
-                        src={
-                          adminHeaderStyle.logoUrl.startsWith('/media')
-                            ? `${process.env.NEXT_PUBLIC_MEDIA_URL || 'http://127.0.0.1:8000'}${adminHeaderStyle.logoUrl}`
-                            : adminHeaderStyle.logoUrl.startsWith('blob:') || adminHeaderStyle.logoUrl.startsWith('data:')
-                              ? '/images/logo.jpg'
-                              : adminHeaderStyle.logoUrl
-                        }
-                        alt="Logo"
-                        width={adminHeaderStyle?.logoSize || 44}
-                        height={adminHeaderStyle?.logoSize || 44}
-                        className="object-cover"
-                        priority
-                        onError={() => console.warn('Logo image failed to load:', adminHeaderStyle.logoUrl)}
-                      />
-                    ) : (
-                      <Image
-                        src="/images/logo.jpg"
-                        alt="Default Logo"
-                        width={adminHeaderStyle?.logoSize || 44}
-                        height={adminHeaderStyle?.logoSize || 44}
-                        className="object-cover"
-                        priority
-                      />
-                    )}
-                  </div>
-                </Link>
-
-                <nav className="hidden lg:flex items-center gap-1" ref={dropdownRef}>
-                  {menuItems.map((item, index) => {
-                    const itemSubMenus = item.subMenus || {}
-
-                    return (
-                      <div
-                        key={index}
-                        className="relative"
-                        onMouseEnter={() => item.items && item.items.length > 0 && setActiveDropdown(index)}
-                        onMouseLeave={() => {
-                          if (!item.items) return
-                          setActiveDropdown(null)
-                          setActiveSubDropdown(null)
-                        }}
-                      >
-                        {item.items ? (
-                          <>
-                            <button
-                              className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeDropdown === index
-                                  ? 'bg-gray-100 text-teal-600'
-                                  : 'text-gray-700 hover:bg-gray-50 hover:text-teal-600'
-                              } ${item.items.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              disabled={item.items.length === 0}
-                            >
-                              {language === 'mn' ? item.title_mn : item.title_en}
-                              {item.items.length > 0 && (
-                                <svg
-                                  className={`w-4 h-4 transition-transform ${activeDropdown === index ? 'rotate-180' : ''}`}
-                                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              )}
-                              {item.title_en === 'Pages' && pagesLoading && (
-                                <svg className="animate-spin h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                </svg>
-                              )}
-                            </button>
-
-                            {/* 2-р түвшний dropdown */}
-                            {activeDropdown === index && item.items.length > 0 && (
-                              <div className="absolute top-full left-0 pt-2 w-72">
-                                <div className="bg-white rounded-xl shadow-xl border border-gray-100 py-2">
-                                  {item.items.map((subItem, subIndex) => {
-                                    const key = language === 'mn' ? subItem.title_mn : subItem.title_en
-                                    const hasSubMenu = !!itemSubMenus[key]
-
-                                    return (
-                                      <div
-                                        key={subIndex}
-                                        className="relative"
-                                        onMouseEnter={() => hasSubMenu && setActiveSubDropdown(key)}
-                                      >
-                                        {hasSubMenu ? (
-                                          <div
-                                            className={`flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer ${
-                                              activeSubDropdown === key ? 'bg-gray-50' : ''
-                                            }`}
-                                          >
-                                            <span className="text-sm font-medium text-gray-900">
-                                              {language === 'mn' ? subItem.title_mn : subItem.title_en}
-                                            </span>
-                                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                          </div>
-                                        ) : (
-                                          <Link
-                                            href={subItem.href}
-                                            className="block px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-900 hover:text-teal-600"
-                                            onClick={() => { setActiveDropdown(null); setActiveSubDropdown(null) }}
-                                          >
-                                            {language === 'mn' ? subItem.title_mn : subItem.title_en}
-                                          </Link>
-                                        )}
-
-                                        {/* 3-р түвшний dropdown */}
-                                        {activeSubDropdown === key && itemSubMenus[key] && (
-                                          <div className="absolute left-full top-0 pl-2 w-64">
-                                            <div className="bg-white rounded-xl shadow-xl border border-gray-100 py-2">
-                                              {itemSubMenus[key].map((nestedItem, nestedIndex) => (
-                                                <Link
-                                                  key={nestedIndex}
-                                                  href={nestedItem.href}
-                                                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600"
-                                                  onClick={() => { setActiveDropdown(null); setActiveSubDropdown(null) }}
-                                                >
-                                                  {language === 'mn' ? nestedItem.title_mn : nestedItem.title_en}
-                                                </Link>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <Link
-                            href={item.href || '#'}
-                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-teal-600 transition-colors"
-                          >
-                            {language === 'mn' ? item.title_mn : item.title_en}
-                          </Link>
-                        )}
-                      </div>
-                    )
-                  })}
-                </nav>
-              </div>
-
-              {/* Right Side */}
-              <div className="flex items-center gap-2">
-
-                {/* Language Selector */}
-                <div className="relative" ref={langRef}>
-                  <button
-                    onClick={() => setLangOpen(!langOpen)}
-                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                    aria-label="Хэл сонгох"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                    </svg>
-                    <span className="text-sm font-medium text-gray-700">{language === 'mn' ? 'MN' : 'EN'}</span>
-                    <svg className={`w-3 h-3 text-gray-500 transition-transform ${langOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {langOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 py-2">
-                      <button
-                        onClick={() => { setLanguage('mn'); setLangOpen(false) }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left text-sm font-medium transition-colors ${
-                          language === 'mn' ? 'text-teal-600 bg-teal-50 hover:bg-teal-100' : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="text-base">🇲🇳</span>Монгол
-                      </button>
-                      <button
-                        onClick={() => { setLanguage('en'); setLangOpen(false) }}
-                        className={`flex items-center gap-2 w-full px-4 py-2 text-left text-sm font-medium transition-colors ${
-                          language === 'en' ? 'text-teal-600 bg-teal-50 hover:bg-teal-100' : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span className="text-base">🇺🇸</span>English
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile Menu Button */}
-                <button
-                  className="lg:hidden p-2.5 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                  onClick={() => setMobileOpen(!mobileOpen)}
-                  aria-label="Цэс"
-                >
-                  {mobileOpen ? (
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Mobile Navigation */}
-            {mobileOpen && (
-              <div className="lg:hidden py-4 border-t border-gray-100">
-                <nav className="space-y-1 max-h-[70vh] overflow-y-auto">
-                  {menuItems.map((item, index) => {
-                    const itemSubMenus = item.subMenus || {}
-
-                    return (
-                      <div key={index}>
-                        {item.items && item.items.length > 0 ? (
-                          <div>
-                            <button
-                              onClick={() => setMobileActiveDropdown(mobileActiveDropdown === index ? null : index)}
-                              className="flex items-center justify-between w-full px-4 py-3 text-gray-700 hover:bg-gray-50/80 rounded-lg"
-                            >
-                              <span className="font-medium">{language === 'mn' ? item.title_mn : item.title_en}</span>
-                              <svg
-                                className={`w-5 h-5 transition-transform duration-200 ${mobileActiveDropdown === index ? 'rotate-180' : ''}`}
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </button>
-
-                            {mobileActiveDropdown === index && (
-                              <div className="pl-4 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                                {item.items.map((subItem, subIndex) => {
-                                  const key = language === 'mn' ? subItem.title_mn : subItem.title_en
-                                  const hasSubMenu = !!itemSubMenus[key]
-
-                                  return (
-                                    <div key={subIndex}>
-                                      {hasSubMenu ? (
-                                        <>
-                                          <button
-                                            onClick={() => setMobileActiveSubDropdown(mobileActiveSubDropdown === key ? null : key)}
-                                            className="flex items-center justify-between w-full px-4 py-2.5 text-gray-600 hover:bg-gray-50/80 rounded-lg"
-                                          >
-                                            <span className="text-sm">{language === 'mn' ? subItem.title_mn : subItem.title_en}</span>
-                                            <svg
-                                              className={`w-4 h-4 transition-transform duration-200 ${mobileActiveSubDropdown === key ? 'rotate-90' : ''}`}
-                                              fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                            >
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                          </button>
-
-                                          {mobileActiveSubDropdown === key && (
-                                            <div className="pl-4 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                                              {itemSubMenus[key].map((nestedItem, nestedIndex) => (
-                                                <Link
-                                                  key={nestedIndex}
-                                                  href={nestedItem.href}
-                                                  className="block px-4 py-2 text-sm text-gray-500 hover:text-teal-600 hover:bg-gray-50/80 rounded-lg"
-                                                  onClick={() => { setMobileOpen(false); setMobileActiveDropdown(null); setMobileActiveSubDropdown(null) }}
-                                                >
-                                                  {language === 'mn' ? nestedItem.title_mn : nestedItem.title_en}
-                                                </Link>
-                                              ))}
-                                            </div>
-                                          )}
-                                        </>
-                                      ) : (
-                                        <Link
-                                          href={subItem.href}
-                                          className="block px-4 py-2.5 text-sm text-gray-600 hover:text-teal-600 hover:bg-gray-50/80 rounded-lg"
-                                          onClick={() => { setMobileOpen(false); setMobileActiveDropdown(null) }}
-                                        >
-                                          {language === 'mn' ? subItem.title_mn : subItem.title_en}
-                                        </Link>
-                                      )}
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <Link
-                            href={item.href || '#'}
-                            className="block px-4 py-3 text-gray-700 font-medium hover:bg-gray-50/80 rounded-lg"
-                            onClick={() => setMobileOpen(false)}
-                          >
-                            {language === 'mn' ? item.title_mn : item.title_en}
-                          </Link>
-                        )}
-                      </div>
-                    )
-                  })}
-                </nav>
-              </div>
-            )}
-          </div>
-        </header>
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-99999" style={{ maxWidth: adminHeaderStyle?.maxWidth || '1240px' }}>
+        {/* Бүх header render хэсэг өөрчлөгдөөгүй байхюм хоомон орихлоо*/}
       </div>
     </>
   )
